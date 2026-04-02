@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.jpg";
 
 const navLinks = [
@@ -15,6 +17,7 @@ const navLinks = [
 const Navbar = () => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   return (
     <motion.nav
@@ -45,6 +48,23 @@ const Navbar = () => {
               {l.label}
             </Link>
           ))}
+
+          {user ? (
+            <div className="flex items-center gap-2 ml-2">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <User className="w-3 h-3" /> {user.email?.split("@")[0]}
+              </span>
+              <Button size="sm" variant="outline" onClick={signOut} className="text-xs border-border text-muted-foreground hover:text-destructive">
+                <LogOut className="w-3 h-3 mr-1" /> Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth" className="ml-2">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/80 text-xs font-display tracking-wider">
+                <LogIn className="w-3 h-3 mr-1" /> Sign In
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -74,6 +94,15 @@ const Navbar = () => {
               {l.label}
             </Link>
           ))}
+          {user ? (
+            <button onClick={() => { signOut(); setOpen(false); }} className="block w-full text-left px-6 py-3 text-sm text-destructive">
+              Sign Out
+            </button>
+          ) : (
+            <Link to="/auth" onClick={() => setOpen(false)} className="block px-6 py-3 text-sm text-primary">
+              Sign In
+            </Link>
+          )}
         </motion.div>
       )}
     </motion.nav>
