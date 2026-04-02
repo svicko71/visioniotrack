@@ -1,80 +1,105 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Upload, Plus, Search, MapPin, Clock, Eye, User,
-  AlertTriangle, CheckCircle, Loader2
+  Upload, Plus, Search, MapPin, Clock, User,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import type { Tables } from "@/integrations/supabase/types";
 
-interface MissingCase {
-  id: number;
-  name: string;
-  age: string;
-  lastSeen: string;
-  description: string;
-  status: "active" | "found" | "urgent";
-  photo: string | null;
-  reportedAt: string;
-}
-
-const initialCases: MissingCase[] = [
-  { id: 1, name: "يوسف سلامه", age: "25", lastSeen: "Cairo, Tahrir Square", description: "Last seen wearing blue jacket", status: "active", photo: null, reportedAt: "2026-04-02 14:00" },
-  { id: 2, name: "أحمد وليد", age: "28", lastSeen: "Giza, Pyramids Area", description: "Found near the pyramids entrance", status: "found", photo: null, reportedAt: "2026-04-02 12:00" },
-  { id: 3, name: "محمد ناصر", age: "22", lastSeen: "Alexandria, Corniche", description: "Last seen near the library", status: "active", photo: null, reportedAt: "2026-04-02 10:00" },
-  { id: 4, name: "محمد صياد", age: "30", lastSeen: "Luxor, Temple Area", description: "Urgent: medical condition", status: "urgent", photo: null, reportedAt: "2026-04-01 22:00" },
-  { id: 5, name: "أحمد ياسر", age: "26", lastSeen: "Aswan, Nile Corniche", description: "Last seen at the market", status: "active", photo: null, reportedAt: "2026-04-02 08:00" },
-];
+type MissingCase = Tables<"missing_cases">;
 
 const Cases = () => {
-  const [cases, setCases] = useState<MissingCase[]>(initialCases);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [cases, setCases] = useState<MissingCase[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [newCase, setNewCase] = useState({ name: "", age: "", lastSeen: "", description: "" });
-  const [newPhoto, setNewPhoto] = useState<string | null>(null);
+  const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);
+  const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const fetchCases = async () => {
+    const { data, error } = await supabase
+      .from("missing_cases")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) { toast.error("Failed to load cases"); console.error(error); }
+    else setCases(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchCases(); }, []);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setNewPhotoFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setNewPhoto(ev.target?.result as string);
+    reader.onload = (ev) => setNewPhotoPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCase.name || !newCase.lastSeen) {
-      toast.error("Please fill in name and last known location");
-      return;
-    }
+    if (!user) { toast.error("Please sign in to report a case"); navigate("/auth"); return; }
+    if (!newCase.name || !newCase.lastSeen) { toast.error("Please fill in name and location"); return; }
+
     setSubmitting(true);
-    setTimeout(() => {
-      const c: MissingCase = {
-        id: Date.now(),
+    try {
+      let photo_url: string | null = null;
+
+      if (newPhotoFile) {
+        const fileExt = newPhotoFile.name.split(".").pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("case-photos")
+          .upload(filePath, newPhotoFile);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("case-photos")
+          .getPublicUrl(filePath);
+        photo_url = urlData.publicUrl;
+      }
+
+      const { error } = await supabase.from("missing_cases").insert({
+        user_id: user.id,
         name: newCase.name,
-        age: newCase.age,
-        lastSeen: newCase.lastSeen,
-        description: newCase.description,
+        age: newCase.age || null,
+        last_seen: newCase.lastSeen,
+        description: newCase.description || null,
+        photo_url,
         status: "active",
-        photo: newPhoto,
-        reportedAt: new Date().toISOString().slice(0, 16).replace("T", " "),
-      };
-      setCases([c, ...cases]);
+      });
+
+      if (error) throw error;
+
+      toast.success("تم تسجيل الحالة بنجاح!");
       setNewCase({ name: "", age: "", lastSeen: "", description: "" });
-      setNewPhoto(null);
+      setNewPhotoFile(null);
+      setNewPhotoPreview(null);
       setShowForm(false);
+      fetchCases();
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
       setSubmitting(false);
-      toast.success("Case reported successfully!");
-    }, 1500);
+    }
   };
 
   const filtered = cases.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.lastSeen.toLowerCase().includes(searchTerm.toLowerCase())
+      c.last_seen.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const statusBadge = (s: string) => {
@@ -103,7 +128,13 @@ const Cases = () => {
                 className="pl-10 bg-secondary border-border"
               />
             </div>
-            <Button onClick={() => setShowForm(!showForm)} className="bg-primary text-primary-foreground hover:bg-primary/80 font-display text-xs tracking-wider">
+            <Button
+              onClick={() => {
+                if (!user) { toast.error("Please sign in first"); navigate("/auth"); return; }
+                setShowForm(!showForm);
+              }}
+              className="bg-primary text-primary-foreground hover:bg-primary/80 font-display text-xs tracking-wider"
+            >
               <Plus className="w-4 h-4 mr-1" /> Report
             </Button>
           </div>
@@ -114,28 +145,26 @@ const Cases = () => {
           <motion.form
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
             onSubmit={handleSubmit}
             className="glass rounded-xl p-6 mb-8 space-y-4"
           >
             <h3 className="font-display text-sm font-bold tracking-wider text-primary">Report Missing Person</h3>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input placeholder="Full Name *" value={newCase.name} onChange={(e) => setNewCase({ ...newCase, name: e.target.value })} className="bg-secondary border-border" required />
               <Input placeholder="Age" value={newCase.age} onChange={(e) => setNewCase({ ...newCase, age: e.target.value })} className="bg-secondary border-border" />
               <Input placeholder="Last Known Location *" value={newCase.lastSeen} onChange={(e) => setNewCase({ ...newCase, lastSeen: e.target.value })} className="bg-secondary border-border" required />
               <div>
                 <label className="flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg bg-secondary border border-border text-sm text-muted-foreground hover:border-primary/50 transition-colors">
-                  <Upload className="w-4 h-4" /> {newPhoto ? "Photo uploaded ✓" : "Upload Photo"}
+                  <Upload className="w-4 h-4" /> {newPhotoFile ? "Photo uploaded ✓" : "Upload Photo"}
                   <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                 </label>
               </div>
             </div>
 
-            {newPhoto && (
+            {newPhotoPreview && (
               <div className="flex items-center gap-4">
-                <img src={newPhoto} alt="Preview" className="w-20 h-20 rounded-lg object-cover" />
-                <button type="button" onClick={() => setNewPhoto(null)} className="text-xs text-destructive hover:underline">Remove</button>
+                <img src={newPhotoPreview} alt="Preview" className="w-20 h-20 rounded-lg object-cover" />
+                <button type="button" onClick={() => { setNewPhotoFile(null); setNewPhotoPreview(null); }} className="text-xs text-destructive hover:underline">Remove</button>
               </div>
             )}
 
@@ -150,49 +179,60 @@ const Cases = () => {
           </motion.form>
         )}
 
-        {/* Cases Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((c, i) => (
-            <motion.div
-              key={c.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="glass rounded-xl p-5 hover:neon-border transition-all duration-500"
-            >
-              <div className="flex gap-4">
-                {c.photo ? (
-                  <img src={c.photo} alt={c.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <User className="w-8 h-8 text-primary/50" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-display text-sm font-bold tracking-wider truncate">{c.name}</h3>
-                    <span className={`text-[10px] font-display tracking-widest uppercase px-2 py-0.5 rounded-full ${statusBadge(c.status)}`}>
-                      {c.status}
-                    </span>
-                  </div>
-                  {c.age && <p className="text-xs text-muted-foreground">Age: {c.age}</p>}
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    <MapPin className="w-3 h-3" /> {c.lastSeen}
-                  </p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    <Clock className="w-3 h-3" /> {c.reportedAt}
-                  </p>
-                  {c.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{c.description}</p>}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {/* Loading */}
+        {loading && (
+          <div className="text-center py-16">
+            <Loader2 className="w-8 h-8 text-primary mx-auto animate-spin" />
+          </div>
+        )}
 
-        {filtered.length === 0 && (
+        {/* Cases Grid */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filtered.map((c, i) => (
+              <motion.div
+                key={c.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="glass rounded-xl p-5 hover:neon-border transition-all duration-500"
+              >
+                <div className="flex gap-4">
+                  {c.photo_url ? (
+                    <img src={c.photo_url} alt={c.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <User className="w-8 h-8 text-primary/50" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-display text-sm font-bold tracking-wider truncate">{c.name}</h3>
+                      <span className={`text-[10px] font-display tracking-widest uppercase px-2 py-0.5 rounded-full ${statusBadge(c.status)}`}>
+                        {c.status}
+                      </span>
+                    </div>
+                    {c.age && <p className="text-xs text-muted-foreground">Age: {c.age}</p>}
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <MapPin className="w-3 h-3" /> {c.last_seen}
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <Clock className="w-3 h-3" /> {new Date(c.reported_at).toLocaleString()}
+                    </p>
+                    {c.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{c.description}</p>}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {!loading && filtered.length === 0 && (
           <div className="text-center py-16">
             <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No cases found matching your search.</p>
+            <p className="text-muted-foreground">
+              {searchTerm ? "No cases found matching your search." : "No cases yet. Be the first to report one."}
+            </p>
           </div>
         )}
       </div>
