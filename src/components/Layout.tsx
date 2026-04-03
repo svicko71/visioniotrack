@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import AIChatbot from "./AIChatbot";
 
 const Layout = () => (
   <div className="min-h-screen flex flex-col">
@@ -9,6 +10,7 @@ const Layout = () => (
       <Outlet />
     </main>
     <Footer />
+    <AIChatbot />
   </div>
 );
 
