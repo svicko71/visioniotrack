@@ -22,11 +22,13 @@ export type Database = {
           id: string
           last_seen: string
           name: string
+          national_id: string | null
           photo_url: string | null
           reported_at: string
           status: string
           updated_at: string
           user_id: string
+          video_url: string | null
         }
         Insert: {
           age?: string | null
@@ -35,11 +37,13 @@ export type Database = {
           id?: string
           last_seen: string
           name: string
+          national_id?: string | null
           photo_url?: string | null
           reported_at?: string
           status?: string
           updated_at?: string
           user_id: string
+          video_url?: string | null
         }
         Update: {
           age?: string | null
@@ -48,11 +52,13 @@ export type Database = {
           id?: string
           last_seen?: string
           name?: string
+          national_id?: string | null
           photo_url?: string | null
           reported_at?: string
           status?: string
           updated_at?: string
           user_id?: string
+          video_url?: string | null
         }
         Relationships: []
       }

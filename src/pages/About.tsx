@@ -20,7 +20,7 @@ const About = () => (
   <div className="py-20 px-4">
     <div className="container mx-auto max-w-4xl">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-4xl font-display font-bold tracking-wider mb-6">
+        <h1 className="text-4xl font-display font-bold tracking-[0.15em] uppercase mb-6">
           About <span className="text-primary neon-text">Us</span>
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed mb-12">
@@ -33,17 +33,17 @@ const About = () => (
       </motion.div>
 
       {/* Values */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
         {values.map((v, i) => (
           <motion.div
             key={v.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="glass rounded-xl p-6"
+            className="glass rounded-xl p-6 hover:neon-border transition-all duration-500"
           >
             <v.icon className="w-8 h-8 text-primary mb-3" />
-            <h3 className="font-display text-sm font-bold tracking-wider mb-2">{v.title}</h3>
+            <h3 className="font-display text-sm font-bold tracking-[0.15em] uppercase mb-2">{v.title}</h3>
             <p className="text-sm text-muted-foreground">{v.desc}</p>
           </motion.div>
         ))}
@@ -54,7 +54,7 @@ const About = () => (
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="text-3xl font-display font-bold tracking-wider mb-8"
+        className="text-3xl font-display font-bold tracking-[0.15em] uppercase mb-8"
       >
         Our <span className="text-accent neon-text-green">Team</span>
       </motion.h2>
@@ -67,8 +67,10 @@ const About = () => (
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1 }}
-            className="glass rounded-xl p-6 text-center hover:neon-border transition-all duration-500"
+            className="glass rounded-xl p-6 text-center hover:neon-border transition-all duration-500 relative overflow-hidden"
           >
+            <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary/30" />
+            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary/30" />
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
               <span className="font-display text-lg font-bold text-primary">
                 {t.nameEn.split(" ").map(n => n[0]).join("")}
@@ -76,7 +78,7 @@ const About = () => (
             </div>
             <h3 className="font-display text-sm font-bold tracking-wider">{t.name}</h3>
             <p className="text-xs text-muted-foreground mt-1">{t.nameEn}</p>
-            <p className="text-xs text-primary mt-2">{t.role}</p>
+            <p className="text-xs text-primary mt-2 font-display tracking-wider">{t.role}</p>
           </motion.div>
         ))}
       </div>
