@@ -19,10 +19,12 @@ export type Database = {
           age: string | null
           created_at: string
           description: string | null
+          gender: string | null
           id: string
           last_seen: string
           name: string
           national_id: string | null
+          phone: string | null
           photo_url: string | null
           reported_at: string
           status: string
@@ -34,10 +36,12 @@ export type Database = {
           age?: string | null
           created_at?: string
           description?: string | null
+          gender?: string | null
           id?: string
           last_seen: string
           name: string
           national_id?: string | null
+          phone?: string | null
           photo_url?: string | null
           reported_at?: string
           status?: string
@@ -49,10 +53,12 @@ export type Database = {
           age?: string | null
           created_at?: string
           description?: string | null
+          gender?: string | null
           id?: string
           last_seen?: string
           name?: string
           national_id?: string | null
+          phone?: string | null
           photo_url?: string | null
           reported_at?: string
           status?: string
