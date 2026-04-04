@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, UserPlus, Loader2, Shield } from "lucide-react";
 import logo from "@/assets/logo.jpg";
+import authBg from "@/assets/auth-bg.jpg";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -42,18 +43,16 @@ const Auth = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 relative">
-      {/* Grid bg */}
-      <div className="absolute inset-0 opacity-5"
-        style={{
-          backgroundImage: "linear-gradient(hsl(180 100% 50% / 0.2) 1px, transparent 1px), linear-gradient(90deg, hsl(180 100% 50% / 0.2) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
-      />
+      {/* Background image */}
+      <div className="absolute inset-0 z-0">
+        <img src={authBg} alt="" className="w-full h-full object-cover opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass rounded-2xl p-8 w-full max-w-md relative overflow-hidden"
+        className="glass rounded-2xl p-8 w-full max-w-md relative overflow-hidden z-10"
       >
         {/* Corner decorations */}
         <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary/40" />
@@ -73,13 +72,13 @@ const Auth = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-display tracking-wider text-muted-foreground uppercase mb-1 block">Email</label>
+            <label className="text-xs font-display tracking-wider text-muted-foreground uppercase mb-1 block">Username / Email</label>
             <Input
               type="email"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-secondary border-primary/20 focus:border-primary"
+              className="bg-secondary border-primary/30 focus:border-primary"
               required
             />
           </div>
@@ -91,7 +90,7 @@ const Auth = () => {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-secondary border-primary/20 focus:border-primary pr-10"
+                className="bg-secondary border-primary/30 focus:border-primary pr-10"
                 required
                 minLength={6}
               />

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Shield, Eye, Zap, MapPin, Bell, Search, Radar, Video, Cpu, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.jpg";
-import heroEye from "@/assets/hero-eye.jpg";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const features = [
   { icon: Eye, title: "Real-Time Scanning", desc: "AI-powered facial recognition across multiple video sources" },
@@ -26,13 +26,11 @@ const Index = () => {
     <div className="relative overflow-hidden">
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center px-4">
-        {/* Background image */}
         <div className="absolute inset-0 z-0">
-          <img src={heroEye} alt="" className="w-full h-full object-cover opacity-20" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+          <img src={heroBg} alt="" className="w-full h-full object-cover opacity-30" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
         </div>
 
-        {/* Grid overlay */}
         <div className="absolute inset-0 opacity-10 z-[1]"
           style={{
             backgroundImage: "linear-gradient(hsl(180 100% 50% / 0.15) 1px, transparent 1px), linear-gradient(90deg, hsl(180 100% 50% / 0.15) 1px, transparent 1px)",

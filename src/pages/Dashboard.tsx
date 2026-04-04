@@ -4,22 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Upload, Search, MapPin, Bell, AlertTriangle, Clock, Eye,
-  Radar, Activity, Users, ChevronRight, Loader2, Video, Volume2, Monitor
+  Radar, Activity, Users, ChevronRight, Loader2, Video, Volume2, Monitor, User
 } from "lucide-react";
 import { toast } from "sonner";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-
-const mockMissingPersons = [
-  { id: 1, name: "يوسف سلامه", nameEn: "Youssef Salama", lastSeen: "Cairo, Tahrir Square", status: "active", match: 87, timestamp: "2026-04-02 14:23", lat: 30.0444, lng: 31.2357 },
-  { id: 2, name: "أحمد وليد", nameEn: "Ahmed Walid", lastSeen: "Giza, Pyramids Area", status: "found", match: 94, timestamp: "2026-04-02 13:15", lat: 29.9792, lng: 31.1342 },
-  { id: 3, name: "محمد ناصر", nameEn: "Mohamed Nasser", lastSeen: "Alexandria, Corniche", status: "active", match: 72, timestamp: "2026-04-02 12:05", lat: 31.2001, lng: 29.9187 },
-  { id: 4, name: "محمد صياد", nameEn: "Mohamed Sayyad", lastSeen: "Luxor, Temple Area", status: "urgent", match: 65, timestamp: "2026-04-01 22:40", lat: 25.6872, lng: 32.6396 },
-  { id: 5, name: "أحمد ياسر", nameEn: "Ahmed Yasser", lastSeen: "Aswan, Nile Corniche", status: "active", match: 81, timestamp: "2026-04-02 09:30", lat: 24.0889, lng: 32.8998 },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 const alertsData = [
-  { id: 1, message: "High match detected for يوسف سلامه near Tahrir Square", type: "match", time: "2 min ago", response: "Processing complete" },
+  { id: 1, message: "High match detected near Tahrir Square", type: "match", time: "2 min ago", response: "Processing complete" },
   { id: 2, message: "Emergency alert resolved", type: "urgent", time: "5 min ago", response: "System response: 0.8s" },
   { id: 3, message: "New CCTV footage processed from Alexandria", type: "info", time: "15 min ago", response: "Resolution: 4K" },
   { id: 4, message: "High match detected near Pyramids", type: "match", time: "30 min ago", response: "Processing complete" },
@@ -27,15 +20,31 @@ const alertsData = [
   { id: 6, message: "New CCTV footage processed from Cairo", type: "info", time: "2h ago", response: "Resolution: 4K" },
 ];
 
+// Map locations for scan simulation
+const locationCoords: Record<string, { lat: number; lng: number }> = {
+  "cairo": { lat: 30.0444, lng: 31.2357 },
+  "giza": { lat: 29.9792, lng: 31.1342 },
+  "alexandria": { lat: 31.2001, lng: 29.9187 },
+  "luxor": { lat: 25.6872, lng: 32.6396 },
+  "aswan": { lat: 24.0889, lng: 32.8998 },
+};
+
 const Dashboard = () => {
   const [scanning, setScanning] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [emergencyMode, setEmergencyMode] = useState(false);
-  const [scanResults, setScanResults] = useState<typeof mockMissingPersons | null>(null);
+  const [scanResults, setScanResults] = useState<any[] | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
+  const [caseCount, setCaseCount] = useState(0);
+
+  useEffect(() => {
+    supabase.from("missing_cases").select("id", { count: "exact", head: true }).then(({ count }) => {
+      setCaseCount(count || 0);
+    });
+  }, []);
 
   const handleFile = useCallback((file: File) => {
     setPhoto(file);
@@ -51,24 +60,41 @@ const Dashboard = () => {
     if (file && file.type.startsWith("image/")) handleFile(file);
   }, [handleFile]);
 
-  const startScan = () => {
+  const startScan = async () => {
     if (!photo) { toast.error("Please upload a photo first"); return; }
     if (!location) { toast.error("Please enter a location"); return; }
     setScanning(true);
     setScanResults(null);
     setScanProgress(0);
+
     const interval = setInterval(() => {
       setScanProgress(p => {
         if (p >= 100) { clearInterval(interval); return 100; }
         return p + Math.random() * 15;
       });
     }, 300);
+
+    // Fetch real cases from DB to show as potential matches
+    const { data: cases } = await supabase.from("missing_cases").select("*").limit(10);
+
     setTimeout(() => {
       clearInterval(interval);
       setScanProgress(100);
       setScanning(false);
-      setScanResults(mockMissingPersons);
-      toast.success("Scan complete! Results found.");
+
+      if (cases && cases.length > 0) {
+        const results = cases.map(c => ({
+          ...c,
+          match: Math.floor(Math.random() * 35) + 65,
+          lat: 30.0 + Math.random() * 2,
+          lng: 31.0 + Math.random() * 2,
+        }));
+        setScanResults(results);
+        toast.success(`Scan complete! ${results.length} potential matches found.`);
+      } else {
+        setScanResults([]);
+        toast.info("Scan complete. No matches found in database.");
+      }
     }, 3500);
   };
 
@@ -93,7 +119,7 @@ const Dashboard = () => {
   return (
     <div className="py-6 px-4 min-h-screen">
       <div className="container mx-auto max-w-7xl">
-        {/* Header with HUD style */}
+        {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
             <h1 className="text-4xl font-display font-black tracking-[0.2em] uppercase">
@@ -117,11 +143,11 @@ const Dashboard = () => {
           </Button>
         </motion.div>
 
-        {/* Stats Cards - HUD Style */}
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: "Active Cases", value: "3", icon: Users, color: "text-primary" },
-            { label: "Found Today", value: "1", icon: Eye, color: "text-accent" },
+            { label: "Active Cases", value: String(caseCount), icon: Users, color: "text-primary" },
+            { label: "Found Today", value: "0", icon: Eye, color: "text-accent" },
             { label: "Scans Running", value: scanning ? "1" : "0", icon: Radar, color: "text-primary" },
             { label: "Alerts", value: String(alertsData.length), icon: Bell, color: "text-destructive" },
           ].map((s, i) => (
@@ -143,9 +169,8 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Panel: Upload & Scan */}
+          {/* Upload Zone */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-1 space-y-4">
-            {/* Upload Zone */}
             <div
               className={`relative glass rounded-xl p-6 transition-all duration-300 ${dragOver ? "neon-border" : ""}`}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -203,7 +228,7 @@ const Dashboard = () => {
             </div>
           </motion.div>
 
-          {/* Center + Right: Results, Alerts, Map */}
+          {/* Results */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-2 space-y-4">
             {/* Scanning animation */}
             <AnimatePresence>
@@ -222,7 +247,55 @@ const Dashboard = () => {
               )}
             </AnimatePresence>
 
-            {/* Alerts Grid - matching reference image style */}
+            {/* Scan Results - Face Match Cards */}
+            {scanResults && scanResults.length > 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass rounded-xl p-6">
+                <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase mb-4 flex items-center gap-2 text-primary">
+                  <Eye className="w-4 h-4" /> Scan Results — {scanResults.length} Potential Matches
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {scanResults.map((r: any, i: number) => (
+                    <motion.div
+                      key={r.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex gap-4 p-4 rounded-xl bg-secondary/40 hover:bg-secondary/60 transition-all border border-border hover:neon-border"
+                    >
+                      {r.photo_url ? (
+                        <img src={r.photo_url} alt={r.name} className="w-20 h-20 rounded-lg object-cover border-2 border-primary/30" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-lg bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+                          <User className="w-10 h-10 text-primary/40" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-display text-sm font-bold tracking-wider truncate">{r.name}</h4>
+                          <span className={`font-display font-black text-xl ${r.match >= 90 ? "text-accent neon-text-green" : r.match >= 80 ? "text-primary neon-text" : "text-muted-foreground"}`}>
+                            {r.match}%
+                          </span>
+                        </div>
+                        {r.age && <p className="text-xs text-muted-foreground">Age: {r.age} • {r.gender === "male" ? "ذكر" : r.gender === "female" ? "أنثى" : ""}</p>}
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <MapPin className="w-3 h-3" /> {r.last_seen}
+                        </p>
+                        <span className={`text-[10px] font-display tracking-widest uppercase ${statusColor(r.status)}`}>{r.status}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {scanResults && scanResults.length === 0 && (
+              <div className="glass rounded-xl p-10 text-center">
+                <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground font-display tracking-wider">No matches found. Try adding cases first.</p>
+              </div>
+            )}
+
+            {/* Alerts */}
             <div className={`glass rounded-xl p-6 ${emergencyMode ? "neon-border" : ""}`}>
               <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase mb-4 flex items-center gap-2 text-primary">
                 <Bell className="w-4 h-4" /> Live Alerts
@@ -236,7 +309,7 @@ const Dashboard = () => {
                     transition={{ delay: i * 0.05 }}
                     className={`p-4 rounded-lg bg-secondary/60 hover:bg-secondary/80 transition-all duration-300 ${
                       a.type === "urgent" && emergencyMode ? "animate-pulse-neon border border-destructive/50" : ""
-                    } ${i === 1 ? "neon-border" : ""}`}
+                    }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       {alertIcon(a.type)}
@@ -248,84 +321,12 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Results Table */}
-            {scanResults && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass rounded-xl p-6">
-                <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase mb-4 flex items-center gap-2 text-primary">
-                  <Eye className="w-4 h-4" /> Scan Results
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border text-left">
-                        <th className="pb-3 text-xs text-muted-foreground font-display tracking-wider">Name</th>
-                        <th className="pb-3 text-xs text-muted-foreground font-display tracking-wider">Match</th>
-                        <th className="pb-3 text-xs text-muted-foreground font-display tracking-wider">Location</th>
-                        <th className="pb-3 text-xs text-muted-foreground font-display tracking-wider">Time</th>
-                        <th className="pb-3 text-xs text-muted-foreground font-display tracking-wider">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {scanResults.map((r) => (
-                        <tr key={r.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                          <td className="py-3">
-                            <div className="font-medium">{r.name}</div>
-                            <div className="text-[10px] text-muted-foreground">{r.nameEn}</div>
-                          </td>
-                          <td className="py-3">
-                            <span className={`font-display font-bold text-lg ${r.match >= 90 ? "text-accent neon-text-green" : r.match >= 80 ? "text-primary neon-text" : "text-muted-foreground"}`}>
-                              {r.match}%
-                            </span>
-                          </td>
-                          <td className="py-3 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {r.lastSeen}</span>
-                          </td>
-                          <td className="py-3 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {r.timestamp}</span>
-                          </td>
-                          <td className="py-3">
-                            <span className={`text-xs font-display tracking-wider uppercase ${statusColor(r.status)}`}>{r.status}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Coverage Map */}
+            {/* Map */}
             <div className="glass rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2 text-primary">
-                  <MapPin className="w-4 h-4" /> Coverage: Nationwide
-                </h3>
-              </div>
-              <DashboardMap persons={scanResults || mockMissingPersons} emergencyMode={emergencyMode} />
-            </div>
-
-            {/* Timeline */}
-            <div className="glass rounded-xl p-6">
-              <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase mb-4 flex items-center gap-2 text-primary">
-                <Clock className="w-4 h-4" /> Movement Timeline
+              <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2 text-primary mb-4">
+                <MapPin className="w-4 h-4" /> Coverage: Nationwide
               </h3>
-              <div className="space-y-3">
-                {(scanResults || mockMissingPersons).slice(0, 4).map((p) => (
-                  <div key={p.id} className="flex items-center gap-4">
-                    <div className="w-3 h-3 rounded-full bg-primary neon-border flex-shrink-0" />
-                    <div className="flex-1 flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors">
-                      <div>
-                        <span className="text-sm font-medium">{p.name}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{p.lastSeen}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" /> {p.timestamp}
-                        <ChevronRight className="w-3 h-3 text-primary" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <DashboardMap results={scanResults} emergencyMode={emergencyMode} />
             </div>
 
             {!scanning && !scanResults && (
@@ -341,7 +342,7 @@ const Dashboard = () => {
   );
 };
 
-const DashboardMap = ({ persons, emergencyMode }: { persons: typeof mockMissingPersons; emergencyMode: boolean }) => {
+const DashboardMap = ({ results, emergencyMode }: { results: any[] | null; emergencyMode: boolean }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
 
@@ -357,24 +358,24 @@ const DashboardMap = ({ persons, emergencyMode }: { persons: typeof mockMissingP
   useEffect(() => {
     if (!mapInstance.current) return;
     mapInstance.current.eachLayer((layer) => {
-      if (layer instanceof L.CircleMarker || layer instanceof L.Polyline) {
-        if (!(layer instanceof L.TileLayer)) mapInstance.current?.removeLayer(layer);
-      }
+      if (!(layer instanceof L.TileLayer)) mapInstance.current?.removeLayer(layer);
     });
 
-    persons.forEach((p) => {
+    const persons = results || [];
+    persons.forEach((p: any) => {
+      if (!p.lat || !p.lng) return;
       const color = p.status === "urgent" ? "#ef4444" : p.status === "found" ? "#00e68a" : "#00e5ff";
       L.circleMarker([p.lat, p.lng], {
         radius: 10, fillColor: color, color: color, weight: 2, opacity: 0.9, fillOpacity: 0.6,
       }).addTo(mapInstance.current!)
-        .bindPopup(`<div style="color:#000;font-size:12px"><strong>${p.name}</strong><br/>${p.lastSeen}<br/>Match: ${p.match}%</div>`);
+        .bindPopup(`<div style="color:#000;font-size:12px"><strong>${p.name}</strong><br/>${p.last_seen}<br/>Match: ${p.match}%</div>`);
     });
 
     if (persons.length >= 2) {
-      const coords = persons.map(p => [p.lat, p.lng] as [number, number]);
-      L.polyline(coords, { color: "#00e5ff", weight: 2, dashArray: "8,8", opacity: 0.5 }).addTo(mapInstance.current);
+      const coords = persons.filter((p: any) => p.lat && p.lng).map((p: any) => [p.lat, p.lng] as [number, number]);
+      if (coords.length >= 2) L.polyline(coords, { color: "#00e5ff", weight: 2, dashArray: "8,8", opacity: 0.5 }).addTo(mapInstance.current);
     }
-  }, [persons, emergencyMode]);
+  }, [results, emergencyMode]);
 
   return <div ref={mapRef} className="w-full h-96 rounded-lg overflow-hidden" />;
 };
