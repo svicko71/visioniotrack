@@ -91,6 +91,34 @@ const Dashboard = () => {
         }));
         setScanResults(results);
         toast.success(`Scan complete! ${results.length} potential matches found.`);
+
+        // Send browser notifications for high matches
+        const highMatches = results.filter(r => r.match >= 85);
+        if (highMatches.length > 0 && Notification.permission === "granted") {
+          highMatches.forEach((m, i) => {
+            setTimeout(() => {
+              new Notification("🚨 VisionTrack AI — High Match!", {
+                body: `${m.name} — ${m.match}% match detected near ${m.last_seen}`,
+                icon: m.photo_url || "/placeholder.svg",
+              });
+            }, i * 1500);
+          });
+        } else if (highMatches.length > 0 && Notification.permission === "default") {
+          Notification.requestPermission();
+        }
+
+        // Show in-app alert toasts for each match sequentially
+        results.forEach((r, i) => {
+          setTimeout(() => {
+            if (r.match >= 90) {
+              toast.error(`🔴 تطابق عالي جداً: ${r.name} — ${r.match}%`, { duration: 6000 });
+            } else if (r.match >= 80) {
+              toast.warning(`🟡 تطابق مرتفع: ${r.name} — ${r.match}%`, { duration: 5000 });
+            } else {
+              toast.info(`🔵 تطابق محتمل: ${r.name} — ${r.match}%`, { duration: 4000 });
+            }
+          }, 500 + i * 800);
+        });
       } else {
         setScanResults([]);
         toast.info("Scan complete. No matches found in database.");
