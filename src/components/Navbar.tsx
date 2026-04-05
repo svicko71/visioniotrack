@@ -20,6 +20,7 @@ const Navbar = () => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
 
   return (
     <motion.nav
