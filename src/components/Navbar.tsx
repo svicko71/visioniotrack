@@ -52,7 +52,15 @@ const Navbar = () => {
             </Link>
           ))}
 
-          {user ? (
+          <button
+            onClick={toggle}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
+
             <div className="flex items-center gap-2 ml-2">
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <User className="w-3 h-3" /> {user.email?.split("@")[0]}
