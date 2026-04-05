@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import Classify from "./pages/Classify";
 import Cases from "./pages/Cases";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
