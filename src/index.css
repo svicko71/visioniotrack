@@ -6,6 +6,54 @@
 
 @layer base {
   :root {
+    --background: 210 40% 96%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 200 95% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 30% 90%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 30% 90%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 83%;
+    --input: 214 20% 83%;
+    --ring: 200 95% 40%;
+
+    --radius: 0.75rem;
+
+    --neon-blue: 195 100% 50%;
+    --neon-green: 160 100% 50%;
+    --neon-cyan: 180 100% 50%;
+    --neon-glow: 0 0 10px hsl(200 95% 40% / 0.2);
+    --neon-glow-green: 0 0 10px hsl(160 84% 39% / 0.2);
+    --neon-glow-sm: 0 0 5px hsl(200 95% 40% / 0.15);
+
+    --sidebar-background: 210 40% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 200 95% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 30% 90%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 20% 83%;
+    --sidebar-ring: 200 95% 40%;
+  }
+
+  .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 92%;
 
@@ -33,8 +81,6 @@
     --border: 222 30% 18%;
     --input: 222 30% 18%;
     --ring: 180 100% 50%;
-
-    --radius: 0.75rem;
 
     --neon-blue: 195 100% 50%;
     --neon-green: 160 100% 50%;

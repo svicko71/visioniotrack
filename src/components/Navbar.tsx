@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Menu, X, LogIn, LogOut, User } from "lucide-react";
+import { Menu, X, LogIn, LogOut, User, Sun, Moon } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.jpg";
 
@@ -19,6 +20,7 @@ const Navbar = () => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
 
   return (
     <motion.nav
@@ -49,6 +51,14 @@ const Navbar = () => {
               {l.label}
             </Link>
           ))}
+
+          <button
+            onClick={toggle}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
 
           {user ? (
             <div className="flex items-center gap-2 ml-2">
