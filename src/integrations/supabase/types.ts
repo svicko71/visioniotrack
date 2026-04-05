@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      classifications: {
+        Row: {
+          all_predictions: Json | null
+          confidence: number
+          created_at: string
+          id: string
+          image_url: string | null
+          model_used: string | null
+          predicted_class: string
+          user_id: string
+        }
+        Insert: {
+          all_predictions?: Json | null
+          confidence: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          model_used?: string | null
+          predicted_class: string
+          user_id: string
+        }
+        Update: {
+          all_predictions?: Json | null
+          confidence?: number
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          model_used?: string | null
+          predicted_class?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       missing_cases: {
         Row: {
           age: string | null
