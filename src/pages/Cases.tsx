@@ -5,12 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Upload, Plus, Search, MapPin, Clock, User,
-  Loader2, Video, CreditCard, Phone
+  Loader2, Video, CreditCard, Phone, AlertTriangle, ShieldAlert, UserX
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+
+const caseTypes = [
+  { value: "missing", label: "مفقود", labelEn: "Missing", icon: UserX, color: "bg-primary/20 text-primary border-primary/30" },
+  { value: "kidnapped", label: "مخطوف", labelEn: "Kidnapped", icon: ShieldAlert, color: "bg-destructive/20 text-destructive border-destructive/30" },
+  { value: "fugitive", label: "هارب", labelEn: "Fugitive", icon: AlertTriangle, color: "bg-amber-500/20 text-amber-500 border-amber-500/30" },
+];
 
 const Cases = () => {
   const { user } = useAuth();
@@ -19,8 +25,9 @@ const Cases = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<string>("all");
   const [newCase, setNewCase] = useState({
-    name: "", age: "", lastSeen: "", description: "", nationalId: "", phone: "", gender: "unknown"
+    name: "", age: "", lastSeen: "", description: "", nationalId: "", phone: "", gender: "unknown", caseType: "missing"
   });
   const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);
   const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
@@ -93,6 +100,7 @@ const Cases = () => {
         national_id: newCase.nationalId || null,
         phone: newCase.phone || null,
         gender: newCase.gender,
+        case_type: newCase.caseType,
         photo_url,
         video_url,
         status: "active",
@@ -101,7 +109,7 @@ const Cases = () => {
       if (error) throw error;
 
       toast.success("تم تسجيل الحالة بنجاح!");
-      setNewCase({ name: "", age: "", lastSeen: "", description: "", nationalId: "", phone: "", gender: "unknown" });
+      setNewCase({ name: "", age: "", lastSeen: "", description: "", nationalId: "", phone: "", gender: "unknown", caseType: "missing" });
       setNewPhotoFile(null);
       setNewPhotoPreview(null);
       setNewVideoFile(null);
@@ -114,18 +122,30 @@ const Cases = () => {
     }
   };
 
-  const filtered = cases.filter(
-    (c) =>
+  const filtered = cases.filter((c) => {
+    const matchesSearch =
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.last_seen.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.national_id && c.national_id.includes(searchTerm)) ||
-      (c.phone && c.phone.includes(searchTerm))
-  );
+      (c.phone && c.phone.includes(searchTerm));
+    const matchesType = filterType === "all" || c.case_type === filterType;
+    return matchesSearch && matchesType;
+  });
 
   const statusBadge = (s: string) => {
     if (s === "found") return "bg-accent/20 text-accent";
     if (s === "urgent") return "bg-destructive/20 text-destructive animate-pulse-neon";
     return "bg-primary/20 text-primary";
+  };
+
+  const caseTypeBadge = (type: string) => {
+    const ct = caseTypes.find((t) => t.value === type);
+    return ct ? ct.color : "bg-muted text-muted-foreground";
+  };
+
+  const caseTypeLabel = (type: string) => {
+    const ct = caseTypes.find((t) => t.value === type);
+    return ct ? ct.label : type;
   };
 
   return (
@@ -160,7 +180,26 @@ const Cases = () => {
           </div>
         </motion.div>
 
-        {/* New Case Form - Expanded */}
+        {/* Filter by type */}
+        <div className="flex gap-2 mb-6 flex-wrap">
+          <button
+            onClick={() => setFilterType("all")}
+            className={`px-3 py-1.5 rounded-full text-xs font-display tracking-wider transition-all ${filterType === "all" ? "bg-primary/20 text-primary border border-primary/30" : "bg-secondary text-muted-foreground border border-border hover:border-primary/30"}`}
+          >
+            All
+          </button>
+          {caseTypes.map((ct) => (
+            <button
+              key={ct.value}
+              onClick={() => setFilterType(ct.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-display tracking-wider transition-all flex items-center gap-1 ${filterType === ct.value ? ct.color + " border" : "bg-secondary text-muted-foreground border border-border hover:border-primary/30"}`}
+            >
+              <ct.icon className="w-3 h-3" /> {ct.label}
+            </button>
+          ))}
+        </div>
+
+        {/* New Case Form */}
         {showForm && (
           <motion.form
             initial={{ opacity: 0, height: 0 }}
@@ -169,6 +208,25 @@ const Cases = () => {
             className="glass rounded-xl p-6 mb-8 space-y-4"
           >
             <h3 className="font-display text-sm font-bold tracking-[0.15em] uppercase text-primary">تسجيل بيانات المفقود</h3>
+
+            {/* Case Type Selection */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 font-display tracking-wider" dir="rtl">نوع الحالة *</p>
+              <div className="flex gap-3 flex-wrap">
+                {caseTypes.map((ct) => (
+                  <button
+                    key={ct.value}
+                    type="button"
+                    onClick={() => setNewCase({ ...newCase, caseType: ct.value })}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-display tracking-wider transition-all ${newCase.caseType === ct.value ? ct.color + " border shadow-sm" : "bg-secondary border-border text-muted-foreground hover:border-primary/30"}`}
+                  >
+                    <ct.icon className="w-4 h-4" />
+                    {ct.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Input placeholder="الاسم الكامل *" value={newCase.name} onChange={(e) => setNewCase({ ...newCase, name: e.target.value })} className="bg-secondary border-border" required dir="rtl" />
               <Input placeholder="السن" type="number" value={newCase.age} onChange={(e) => setNewCase({ ...newCase, age: e.target.value })} className="bg-secondary border-border" dir="rtl" />
@@ -246,11 +304,16 @@ const Cases = () => {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1 gap-2">
                       <h3 className="font-display text-sm font-bold tracking-wider truncate">{c.name}</h3>
-                      <span className={`text-[10px] font-display tracking-widest uppercase px-2 py-0.5 rounded-full ${statusBadge(c.status)}`}>
-                        {c.status}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <span className={`text-[10px] font-display tracking-widest uppercase px-2 py-0.5 rounded-full border ${caseTypeBadge(c.case_type || 'missing')}`}>
+                          {caseTypeLabel(c.case_type || 'missing')}
+                        </span>
+                        <span className={`text-[10px] font-display tracking-widest uppercase px-2 py-0.5 rounded-full ${statusBadge(c.status)}`}>
+                          {c.status}
+                        </span>
+                      </div>
                     </div>
                     {c.age && <p className="text-xs text-muted-foreground">السن: {c.age} {c.gender === "male" ? "• ذكر" : c.gender === "female" ? "• أنثى" : ""}</p>}
                     {c.national_id && <p className="text-xs text-muted-foreground flex items-center gap-1"><CreditCard className="w-3 h-3" /> {c.national_id}</p>}

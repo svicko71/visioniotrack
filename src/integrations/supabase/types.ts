@@ -50,6 +50,7 @@ export type Database = {
       missing_cases: {
         Row: {
           age: string | null
+          case_type: string
           created_at: string
           description: string | null
           gender: string | null
@@ -67,6 +68,7 @@ export type Database = {
         }
         Insert: {
           age?: string | null
+          case_type?: string
           created_at?: string
           description?: string | null
           gender?: string | null
@@ -84,6 +86,7 @@ export type Database = {
         }
         Update: {
           age?: string | null
+          case_type?: string
           created_at?: string
           description?: string | null
           gender?: string | null

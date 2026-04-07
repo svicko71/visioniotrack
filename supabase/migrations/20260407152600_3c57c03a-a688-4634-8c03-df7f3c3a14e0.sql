@@ -1,0 +1,1 @@
+ALTER TABLE public.missing_cases ADD COLUMN case_type TEXT NOT NULL DEFAULT 'missing';
