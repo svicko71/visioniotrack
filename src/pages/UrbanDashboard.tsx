@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import {
   Upload, MapPin, Bell, AlertTriangle, Eye, Radar, Activity,
   Loader2, Trash2, Trees, Building, Hammer, Zap, CheckCircle2,
-  XCircle, ShieldAlert, Lightbulb, Camera
+  XCircle, ShieldAlert, Lightbulb, Camera, Radio, Wifi, Clock
 } from "lucide-react";
 import { toast } from "sonner";
 import L from "leaflet";
@@ -27,6 +27,46 @@ const severityColors: Record<string, string> = {
   critical: "bg-red-500/20 text-red-400 border-red-500/30",
 };
 
+// Smart matching: pair empty_land detections with available donations
+const generateSmartMatches = (detections: any[], donations: any[]) => {
+  const emptyLands = detections.filter((d) => d.detection_type === "empty_land");
+  const available = donations.filter((d) => d.status === "available");
+  if (!emptyLands.length || !available.length) return [];
+
+  const categoryActions: Record<string, string> = {
+    plants: "a community garden or green park",
+    wood: "benches, fencing, and playground structures",
+    furniture: "a public seating area or outdoor lounge",
+    building_materials: "a community center or shelter",
+    other: "a multi-purpose community space",
+  };
+
+  return emptyLands.slice(0, 5).map((land) => {
+    const matched = available.slice(0, 3);
+    const cats = [...new Set(matched.map((m: any) => m.category))];
+    const actions = cats.map((c) => categoryActions[c] || "a useful space").join(" and ");
+    const score = 0.6 + Math.random() * 0.35;
+    const items = matched.map((m: any) => m.title).join(", ");
+
+    return {
+      detection: land,
+      donations: matched,
+      recommendation: `Convert empty area (${land.description || "detected site"}) into ${actions} using donated items: ${items}.`,
+      match_score: Number(score.toFixed(2)),
+    };
+  });
+};
+
+// Simulated live feed data
+const simulatedFeeds = [
+  { cam: "CAM-01 Cairo Downtown", status: "active", fps: 30, type: "CCTV" },
+  { cam: "CAM-02 Giza Industrial", status: "active", fps: 25, type: "Drone" },
+  { cam: "CAM-03 Alexandria Port", status: "active", fps: 30, type: "CCTV" },
+  { cam: "CAM-04 Nasr City", status: "processing", fps: 15, type: "Mobile" },
+  { cam: "CAM-05 Helwan Zone", status: "active", fps: 30, type: "IoT" },
+  { cam: "CAM-06 Maadi District", status: "offline", fps: 0, type: "CCTV" },
+];
+
 const UrbanDashboard = () => {
   const { user } = useAuth();
   const [analyzing, setAnalyzing] = useState(false);
@@ -37,19 +77,30 @@ const UrbanDashboard = () => {
   const [detections, setDetections] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
+  const [smartMatches, setSmartMatches] = useState<any[]>([]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [donations, setDonations] = useState<any[]>([]);
+  const [liveTime, setLiveTime] = useState(new Date());
+
+  // Live clock
+  useEffect(() => {
+    const t = setInterval(() => setLiveTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   // Load existing data
   useEffect(() => {
     const load = async () => {
-      const [dRes, aRes, mRes] = await Promise.all([
+      const [dRes, aRes, mRes, donRes] = await Promise.all([
         supabase.from("urban_detections").select("*").order("created_at", { ascending: false }).limit(50),
         supabase.from("urban_alerts").select("*").order("created_at", { ascending: false }).limit(20),
         supabase.from("ai_matches").select("*, urban_detections(*), donations(*)").order("created_at", { ascending: false }).limit(20),
+        supabase.from("donations").select("*").eq("status", "available").limit(20),
       ]);
       if (dRes.data) setDetections(dRes.data);
       if (aRes.data) setAlerts(aRes.data);
       if (mRes.data) setMatches(mRes.data);
+      if (donRes.data) setDonations(donRes.data);
     };
     load();
 
@@ -64,6 +115,12 @@ const UrbanDashboard = () => {
 
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  // Generate smart matches whenever detections or donations change
+  useEffect(() => {
+    const sm = generateSmartMatches(detections, donations);
+    setSmartMatches(sm);
+  }, [detections, donations]);
 
   const handleFile = useCallback((file: File) => {
     setPhoto(file);
@@ -126,7 +183,7 @@ const UrbanDashboard = () => {
           }
         }
 
-        // Refresh detections
+        // Refresh
         const { data: fresh } = await supabase.from("urban_detections").select("*").order("created_at", { ascending: false }).limit(50);
         if (fresh) setDetections(fresh);
 
@@ -147,21 +204,31 @@ const UrbanDashboard = () => {
     { label: "Total Detections", value: detections.length, icon: Eye, color: "text-primary" },
     { label: "Active Alerts", value: alerts.filter((a) => !a.acknowledged).length, icon: Bell, color: "text-destructive" },
     { label: "Critical Issues", value: detections.filter((d) => d.severity === "critical").length, icon: ShieldAlert, color: "text-red-500" },
-    { label: "AI Matches", value: matches.length, icon: Lightbulb, color: "text-accent" },
+    { label: "AI Matches", value: smartMatches.length + matches.length, icon: Lightbulb, color: "text-accent" },
   ];
 
   return (
     <div className="py-6 px-4 min-h-screen">
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-display font-black tracking-[0.15em] uppercase">
-            <span className="text-primary neon-text">Urban Shield</span>
-            <span className="text-accent"> & Link</span>
-          </h1>
-          <p className="text-xs font-display tracking-widest text-muted-foreground uppercase mt-1">
-            AI-Powered Urban Monitoring • Powered by Vision Track
-          </p>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-display font-black tracking-[0.15em] uppercase">
+              <span className="text-primary neon-text">Urban Shield</span>
+              <span className="text-accent"> & Link</span>
+            </h1>
+            <p className="text-xs font-display tracking-widest text-muted-foreground uppercase mt-1">
+              AI-Powered Urban Monitoring • Powered by Vision Track
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-xs font-display tracking-wider">
+            <span className="flex items-center gap-1.5 text-accent">
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" /> LIVE
+            </span>
+            <span className="text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3 h-3" /> {liveTime.toLocaleTimeString()}
+            </span>
+          </div>
         </motion.div>
 
         {/* Stats */}
@@ -177,8 +244,9 @@ const UrbanDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Upload & Analyze */}
+          {/* Left Column: Upload + Results + Edge Devices + Filter */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+            {/* Upload & Analyze */}
             <div className={`glass rounded-xl p-6 transition-all ${dragOver ? "neon-border" : ""}`}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
@@ -237,6 +305,26 @@ const UrbanDashboard = () => {
               )}
             </AnimatePresence>
 
+            {/* Edge Device Simulation */}
+            <div className="glass rounded-xl p-4">
+              <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase mb-3 text-primary flex items-center gap-2">
+                <Wifi className="w-4 h-4" /> Edge Devices
+              </h3>
+              <div className="space-y-2">
+                {simulatedFeeds.map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-secondary/30 text-xs">
+                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                      f.status === "active" ? "bg-accent animate-pulse" :
+                      f.status === "processing" ? "bg-amber-500 animate-pulse" : "bg-muted-foreground"
+                    }`} />
+                    <span className="font-display tracking-wider truncate flex-1">{f.cam}</span>
+                    <span className="text-muted-foreground">{f.type}</span>
+                    {f.fps > 0 && <span className="text-primary font-bold">{f.fps}fps</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Type Filter */}
             <div className="glass rounded-xl p-4">
               <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase mb-3 text-primary">Filter</h3>
@@ -255,7 +343,7 @@ const UrbanDashboard = () => {
             </div>
           </motion.div>
 
-          {/* Map + Alerts */}
+          {/* Right Column: Map + Alerts + Matches + Detections */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-2 space-y-4">
             {/* Map */}
             <div className="glass rounded-xl p-6">
@@ -263,6 +351,12 @@ const UrbanDashboard = () => {
                 <MapPin className="w-4 h-4" /> Urban Intelligence Map
               </h3>
               <UrbanMap detections={filteredDetections} />
+              <div className="flex items-center gap-4 mt-3 text-[10px] font-display tracking-wider text-muted-foreground">
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500 inline-block" /> Problems</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-500 inline-block" /> Opportunities</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500 inline-block" /> Construction</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500 animate-ping inline-block" style={{ animationDuration: "2s" }} /> Critical</span>
+              </div>
             </div>
 
             {/* Alerts */}
@@ -275,13 +369,13 @@ const UrbanDashboard = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
                   {alerts.slice(0, 8).map((a: any) => (
-                    <div key={a.id} className={`p-3 rounded-lg border ${severityColors[a.severity] || severityColors.medium}`}>
+                    <div key={a.id} className={`p-3 rounded-lg border ${severityColors[a.severity] || severityColors.medium} ${a.severity === "critical" ? "animate-pulse" : ""}`}>
                       <div className="flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                         <span className="text-xs font-display font-bold tracking-wider truncate">{a.message}</span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-[10px] opacity-70">{a.alert_type?.replace("_", " ")}</span>
+                        <span className="text-[10px] opacity-70">{a.alert_type?.replace(/_/g, " ")}</span>
                         {a.acknowledged ? <CheckCircle2 className="w-3 h-3 text-accent" /> : <XCircle className="w-3 h-3 text-destructive" />}
                       </div>
                     </div>
@@ -290,25 +384,47 @@ const UrbanDashboard = () => {
               )}
             </div>
 
-            {/* AI Matches */}
-            {matches.length > 0 && (
-              <div className="glass rounded-xl p-6">
-                <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2 text-accent mb-4">
-                  <Lightbulb className="w-4 h-4" /> AI Smart Matches
-                </h3>
+            {/* Smart AI Matches */}
+            <div className="glass rounded-xl p-6">
+              <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase flex items-center gap-2 text-accent mb-4">
+                <Lightbulb className="w-4 h-4" /> AI Smart Matching ({smartMatches.length + matches.length})
+              </h3>
+              {smartMatches.length === 0 && matches.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Smart matches appear when empty land is detected and donations are available.
+                </p>
+              ) : (
                 <div className="space-y-3">
-                  {matches.slice(0, 5).map((m: any) => (
+                  {smartMatches.map((m, i) => (
+                    <motion.div key={`sm-${i}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
+                      className="p-4 rounded-lg bg-accent/5 border border-accent/20 hover:border-accent/40 transition-all">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Lightbulb className="w-4 h-4 text-accent" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm leading-relaxed">{m.recommendation}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            <span>Score: <span className="text-accent font-bold">{Math.round(m.match_score * 100)}%</span></span>
+                            <span>•</span>
+                            <span>{m.donations.length} items matched</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {matches.map((m: any) => (
                     <div key={m.id} className="p-4 rounded-lg bg-accent/5 border border-accent/20">
                       <p className="text-sm">{m.recommendation}</p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                        <span>Match Score: <span className="text-accent font-bold">{Math.round(m.match_score * 100)}%</span></span>
+                        <span>Score: <span className="text-accent font-bold">{Math.round((m.match_score || 0) * 100)}%</span></span>
                         <span className="capitalize">{m.status}</span>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Recent Detections */}
             <div className="glass rounded-xl p-6">
@@ -323,7 +439,7 @@ const UrbanDashboard = () => {
                     const cfg = typeConfig[d.detection_type] || typeConfig.waste;
                     const Icon = cfg.icon;
                     return (
-                      <div key={d.id} className="p-3 rounded-lg bg-secondary/40 border border-border hover:neon-border transition-all">
+                      <div key={d.id} className={`p-3 rounded-lg bg-secondary/40 border border-border hover:neon-border transition-all ${d.severity === "critical" ? "animate-pulse-neon" : ""}`}>
                         <div className="flex items-center gap-2 mb-1">
                           <Icon className={`w-4 h-4 ${cfg.color}`} />
                           <span className="font-display text-xs font-bold tracking-wider">{cfg.label}</span>
@@ -333,7 +449,7 @@ const UrbanDashboard = () => {
                         <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
                           <span>Conf: {Math.round(d.confidence * 100)}%</span>
                           <span>•</span>
-                          <span>{new Date(d.created_at).toLocaleDateString()}</span>
+                          <span>{new Date(d.created_at).toLocaleString()}</span>
                         </div>
                       </div>
                     );
@@ -369,24 +485,46 @@ const UrbanMap = ({ detections }: { detections: any[] }) => {
 
     detections.forEach((d) => {
       if (!d.lat || !d.lng) return;
-      const cfg = typeConfig[d.detection_type] || typeConfig.waste;
-      const isRed = d.detection_type === "waste" || d.detection_type === "structural_damage";
-      const color = isRed ? "#ef4444" : "#22c55e";
+      const isOpportunity = d.detection_type === "empty_land";
+      const isConstruction = d.detection_type === "construction_activity";
+      const color = isOpportunity ? "#22c55e" : isConstruction ? "#f59e0b" : "#ef4444";
+      const isCritical = d.severity === "critical";
 
+      // Main marker
       L.circleMarker([Number(d.lat), Number(d.lng)], {
-        radius: d.severity === "critical" ? 14 : d.severity === "high" ? 11 : 8,
+        radius: isCritical ? 14 : d.severity === "high" ? 11 : 8,
         fillColor: color, color, weight: 2, opacity: 0.9, fillOpacity: 0.5,
+        className: isCritical ? "critical-marker" : "",
       }).addTo(mapInstance.current!)
-        .bindPopup(`<div style="color:#000;font-size:12px">
-          <strong>${cfg.label}</strong><br/>
-          ${d.description || ""}<br/>
-          Severity: ${d.severity}<br/>
-          Confidence: ${Math.round(d.confidence * 100)}%
+        .bindPopup(`<div style="color:#000;font-size:12px;min-width:150px">
+          <strong style="color:${color}">${(typeConfig[d.detection_type] || typeConfig.waste).label}</strong><br/>
+          <span style="font-size:11px">${d.description || "N/A"}</span><br/>
+          <b>Severity:</b> ${d.severity}<br/>
+          <b>Confidence:</b> ${Math.round(d.confidence * 100)}%<br/>
+          <b>Time:</b> ${new Date(d.created_at).toLocaleString()}
         </div>`);
+
+      // Blinking ring for critical
+      if (isCritical) {
+        L.circleMarker([Number(d.lat), Number(d.lng)], {
+          radius: 20, fillColor: "transparent", color, weight: 1, opacity: 0.3, fillOpacity: 0,
+          className: "critical-ring",
+        }).addTo(mapInstance.current!);
+      }
     });
   }, [detections]);
 
-  return <div ref={mapRef} className="w-full h-96 rounded-lg overflow-hidden" />;
+  return (
+    <>
+      <style>{`
+        .critical-marker { animation: blink-marker 1.5s ease-in-out infinite; }
+        .critical-ring { animation: pulse-ring 2s ease-out infinite; }
+        @keyframes blink-marker { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes pulse-ring { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.8); } }
+      `}</style>
+      <div ref={mapRef} className="w-full h-96 rounded-lg overflow-hidden" />
+    </>
+  );
 };
 
 export default UrbanDashboard;
