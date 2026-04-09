@@ -7,6 +7,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import UrbanDashboard from "./pages/UrbanDashboard";
+import Marketplace from "./pages/Marketplace";
 import Classify from "./pages/Classify";
 import Cases from "./pages/Cases";
 import Gallery from "./pages/Gallery";
@@ -28,6 +30,8 @@ const App = () => (
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/urban" element={<UrbanDashboard />} />
+              <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/classify" element={<Classify />} />
               <Route path="/cases" element={<Cases />} />
               <Route path="/gallery" element={<Gallery />} />

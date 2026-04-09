@@ -10,6 +10,8 @@ import logo from "@/assets/logo.jpg";
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/urban", label: "Urban Shield" },
+  { to: "/marketplace", label: "Marketplace" },
   { to: "/classify", label: "Classify" },
   { to: "/cases", label: "Cases" },
   { to: "/gallery", label: "Gallery" },

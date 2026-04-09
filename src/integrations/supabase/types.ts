@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_matches: {
+        Row: {
+          created_at: string
+          detection_id: string | null
+          donation_id: string | null
+          id: string
+          match_score: number | null
+          recommendation: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          detection_id?: string | null
+          donation_id?: string | null
+          id?: string
+          match_score?: number | null
+          recommendation: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          detection_id?: string | null
+          donation_id?: string | null
+          id?: string
+          match_score?: number | null
+          recommendation?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_matches_detection_id_fkey"
+            columns: ["detection_id"]
+            isOneToOne: false
+            referencedRelation: "urban_detections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_matches_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classifications: {
         Row: {
           all_predictions: Json | null
@@ -43,6 +88,51 @@ export type Database = {
           image_url?: string | null
           model_used?: string | null
           predicted_class?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      donations: {
+        Row: {
+          category: string
+          condition: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          lat: number | null
+          lng: number | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          condition?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          lat?: number | null
+          lng?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          condition?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          lat?: number | null
+          lng?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -101,6 +191,92 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      urban_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          alert_type: string
+          created_at: string
+          detection_id: string | null
+          id: string
+          message: string
+          severity: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          alert_type: string
+          created_at?: string
+          detection_id?: string | null
+          id?: string
+          message: string
+          severity?: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          alert_type?: string
+          created_at?: string
+          detection_id?: string | null
+          id?: string
+          message?: string
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "urban_alerts_detection_id_fkey"
+            columns: ["detection_id"]
+            isOneToOne: false
+            referencedRelation: "urban_detections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      urban_detections: {
+        Row: {
+          confidence: number
+          created_at: string
+          description: string | null
+          detection_type: string
+          id: string
+          image_url: string | null
+          lat: number
+          lng: number
+          metadata: Json | null
+          severity: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number
+          created_at?: string
+          description?: string | null
+          detection_type: string
+          id?: string
+          image_url?: string | null
+          lat: number
+          lng: number
+          metadata?: Json | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          description?: string | null
+          detection_type?: string
+          id?: string
+          image_url?: string | null
+          lat?: number
+          lng?: number
+          metadata?: Json | null
+          severity?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
