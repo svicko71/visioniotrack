@@ -7,6 +7,9 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import CommandCenter from "./pages/CommandCenter";
+import AISearch from "./pages/AISearch";
+import Admin from "./pages/Admin";
 import UrbanDashboard from "./pages/UrbanDashboard";
 import Marketplace from "./pages/Marketplace";
 import Classify from "./pages/Classify";
@@ -30,6 +33,9 @@ const App = () => (
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/command" element={<CommandCenter />} />
+              <Route path="/search" element={<AISearch />} />
+              <Route path="/admin" element={<Admin />} />
               <Route path="/urban" element={<UrbanDashboard />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/classify" element={<Classify />} />

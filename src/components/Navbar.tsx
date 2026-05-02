@@ -9,14 +9,13 @@ import logo from "@/assets/logo.jpg";
 
 const navLinks = [
   { to: "/", label: "Home" },
+  { to: "/command", label: "Command" },
+  { to: "/search", label: "AI Search" },
   { to: "/dashboard", label: "Dashboard" },
-  { to: "/urban", label: "Urban Shield" },
-  { to: "/marketplace", label: "Marketplace" },
-  { to: "/classify", label: "Classify" },
   { to: "/cases", label: "Cases" },
-  { to: "/gallery", label: "Gallery" },
-  { to: "/about", label: "About Us" },
-  { to: "/contact", label: "Contact" },
+  { to: "/urban", label: "Urban Shield" },
+  { to: "/admin", label: "Admin" },
+  { to: "/about", label: "About" },
 ];
 
 const Navbar = () => {
