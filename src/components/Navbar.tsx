@@ -13,7 +13,8 @@ const navLinks = [
   { to: "/search", label: "AI Search" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/cases", label: "Cases" },
-  { to: "/urban", label: "Urban Shield" },
+  { to: "/shield", label: "Urban Shield" },
+  { to: "/urban", label: "Urban AI" },
   { to: "/admin", label: "Admin" },
   { to: "/about", label: "About" },
 ];
