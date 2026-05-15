@@ -183,9 +183,10 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
   const fileReady = !!file;
   const usbReady = usbStatus === "success" && framesReceived >= 3 && !!usbSpecs;
   const rtspReady = rtspStatus === "success";
+  const piReady = piStatus === "success";
   const canStart =
     sessionName.trim().length > 0 &&
-    ((tab === "usb" && usbReady) || (tab === "rtsp" && rtspReady) || (tab === "file" && fileReady));
+    ((tab === "usb" && usbReady) || (tab === "rtsp" && rtspReady) || (tab === "file" && fileReady) || (tab === "pi" && piReady));
 
   const StatusBadge = ({ s }: { s: Status }) => {
     const map: Record<Status, { label: string; cls: string; icon: any }> = {
@@ -226,10 +227,11 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
           </div>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="grid grid-cols-3 bg-slate-100">
-              <TabsTrigger value="usb">USB / Local</TabsTrigger>
-              <TabsTrigger value="rtsp">IP Camera (RTSP)</TabsTrigger>
-              <TabsTrigger value="file">File / Recorded</TabsTrigger>
+            <TabsList className="grid grid-cols-4 bg-slate-100">
+              <TabsTrigger value="usb">USB</TabsTrigger>
+              <TabsTrigger value="rtsp">RTSP</TabsTrigger>
+              <TabsTrigger value="file">File</TabsTrigger>
+              <TabsTrigger value="pi"><Cpu className="h-3 w-3 mr-1" />Pi Camera</TabsTrigger>
             </TabsList>
 
             <TabsContent value="usb" className="space-y-3 pt-2">
