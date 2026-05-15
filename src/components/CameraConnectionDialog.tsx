@@ -51,6 +51,27 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
   const [loop, setLoop] = useState(false);
   const fileVideoRef = useRef<HTMLVideoElement>(null);
 
+  // Pi
+  const piCfg = usePiConfig();
+  const [piIpDraft, setPiIpDraft] = useState(piCfg.piIp);
+  const [piStatus, setPiStatus] = useState<Status>("idle");
+  const [piSpecs, setPiSpecs] = useState<{ resolution?: string; fps?: number; model?: string } | null>(null);
+
+  useEffect(() => { setPiIpDraft(piCfg.piIp); }, [piCfg.piIp]);
+
+  const testPi = async () => {
+    setPiStatus("connecting");
+    if (piIpDraft !== piCfg.piIp) piCfg.setPiIp(piIpDraft);
+    const r = await piCfg.testConnection();
+    if (r.ws && r.mjpeg) {
+      setPiStatus("success");
+      setPiSpecs(piCfg.specs);
+    } else {
+      setPiStatus("failed");
+    }
+  };
+  useEffect(() => { if (piCfg.specs) setPiSpecs(piCfg.specs); }, [piCfg.specs]);
+
   const stopUsb = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
