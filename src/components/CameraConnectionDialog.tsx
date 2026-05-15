@@ -344,6 +344,40 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
                 </div>
               </div>
             </TabsContent>
+
+            <TabsContent value="pi" className="space-y-3 pt-2">
+              <div>
+                <Label className="text-slate-700 text-xs">Raspberry Pi IP Address</Label>
+                <Input
+                  value={piIpDraft}
+                  onChange={(e) => setPiIpDraft(e.target.value)}
+                  placeholder="192.168.1.100"
+                  className="mt-1.5 bg-white border-slate-200 font-mono"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">Connects to ws://[IP]:8765 + http://[IP]:8766</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <StatusBadge s={piStatus} />
+                <Button onClick={testPi} variant="outline" size="sm" className="border-slate-300" disabled={!piIpDraft || piStatus === "connecting"}>
+                  {piStatus === "connecting" ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : null}
+                  Test Pi Connection
+                </Button>
+              </div>
+              {piStatus === "success" && (
+                <div className="rounded-md bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800 space-y-1">
+                  <div className="flex items-center gap-1.5 font-medium"><CheckCircle2 className="h-3.5 w-3.5" /> Pi reachable on both ports</div>
+                  <div><span className="text-emerald-700/70">Resolution:</span> {piSpecs?.resolution || "—"}</div>
+                  <div><span className="text-emerald-700/70">FPS:</span> {piSpecs?.fps ?? "—"}</div>
+                  <div><span className="text-emerald-700/70">Model:</span> {piSpecs?.model || "YOLOv8"}</div>
+                </div>
+              )}
+              {piStatus === "failed" && (
+                <div className="rounded-md border border-rose-200 bg-rose-50 text-rose-700 text-xs p-2.5 flex gap-2">
+                  <XCircle className="h-4 w-4 shrink-0" />
+                  <span>Could not reach Pi on {piIpDraft}. Verify it's on the same LAN and visiontrack_server.py is running.</span>
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
 
           <div className="flex items-start gap-2 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-md p-2.5">
