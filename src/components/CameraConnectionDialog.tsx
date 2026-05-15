@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, Upload, ShieldAlert, RefreshCw } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Upload, ShieldAlert, RefreshCw, Cpu } from "lucide-react";
+import { usePiConfig } from "@/hooks/usePiConfig";
 
 type Status = "idle" | "connecting" | "success" | "failed" | "reconnecting";
 
@@ -49,6 +50,27 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
   const [speed, setSpeed] = useState("1");
   const [loop, setLoop] = useState(false);
   const fileVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Pi
+  const piCfg = usePiConfig();
+  const [piIpDraft, setPiIpDraft] = useState(piCfg.piIp);
+  const [piStatus, setPiStatus] = useState<Status>("idle");
+  const [piSpecs, setPiSpecs] = useState<{ resolution?: string; fps?: number; model?: string } | null>(null);
+
+  useEffect(() => { setPiIpDraft(piCfg.piIp); }, [piCfg.piIp]);
+
+  const testPi = async () => {
+    setPiStatus("connecting");
+    if (piIpDraft !== piCfg.piIp) piCfg.setPiIp(piIpDraft);
+    const r = await piCfg.testConnection();
+    if (r.ws && r.mjpeg) {
+      setPiStatus("success");
+      setPiSpecs(piCfg.specs);
+    } else {
+      setPiStatus("failed");
+    }
+  };
+  useEffect(() => { if (piCfg.specs) setPiSpecs(piCfg.specs); }, [piCfg.specs]);
 
   const stopUsb = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -161,9 +183,10 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
   const fileReady = !!file;
   const usbReady = usbStatus === "success" && framesReceived >= 3 && !!usbSpecs;
   const rtspReady = rtspStatus === "success";
+  const piReady = piStatus === "success";
   const canStart =
     sessionName.trim().length > 0 &&
-    ((tab === "usb" && usbReady) || (tab === "rtsp" && rtspReady) || (tab === "file" && fileReady));
+    ((tab === "usb" && usbReady) || (tab === "rtsp" && rtspReady) || (tab === "file" && fileReady) || (tab === "pi" && piReady));
 
   const StatusBadge = ({ s }: { s: Status }) => {
     const map: Record<Status, { label: string; cls: string; icon: any }> = {
@@ -204,10 +227,11 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
           </div>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="grid grid-cols-3 bg-slate-100">
-              <TabsTrigger value="usb">USB / Local</TabsTrigger>
-              <TabsTrigger value="rtsp">IP Camera (RTSP)</TabsTrigger>
-              <TabsTrigger value="file">File / Recorded</TabsTrigger>
+            <TabsList className="grid grid-cols-4 bg-slate-100">
+              <TabsTrigger value="usb">USB</TabsTrigger>
+              <TabsTrigger value="rtsp">RTSP</TabsTrigger>
+              <TabsTrigger value="file">File</TabsTrigger>
+              <TabsTrigger value="pi"><Cpu className="h-3 w-3 mr-1" />Pi Camera</TabsTrigger>
             </TabsList>
 
             <TabsContent value="usb" className="space-y-3 pt-2">
@@ -319,6 +343,40 @@ export default function CameraConnectionDialog({ open, onOpenChange, onSessionSt
                   <div className="flex items-center gap-2"><Switch checked={loop} onCheckedChange={setLoop} /><Label className="text-slate-700 text-xs">Loop</Label></div>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="pi" className="space-y-3 pt-2">
+              <div>
+                <Label className="text-slate-700 text-xs">Raspberry Pi IP Address</Label>
+                <Input
+                  value={piIpDraft}
+                  onChange={(e) => setPiIpDraft(e.target.value)}
+                  placeholder="192.168.1.100"
+                  className="mt-1.5 bg-white border-slate-200 font-mono"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">Connects to ws://[IP]:8765 + http://[IP]:8766</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <StatusBadge s={piStatus} />
+                <Button onClick={testPi} variant="outline" size="sm" className="border-slate-300" disabled={!piIpDraft || piStatus === "connecting"}>
+                  {piStatus === "connecting" ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : null}
+                  Test Pi Connection
+                </Button>
+              </div>
+              {piStatus === "success" && (
+                <div className="rounded-md bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800 space-y-1">
+                  <div className="flex items-center gap-1.5 font-medium"><CheckCircle2 className="h-3.5 w-3.5" /> Pi reachable on both ports</div>
+                  <div><span className="text-emerald-700/70">Resolution:</span> {piSpecs?.resolution || "—"}</div>
+                  <div><span className="text-emerald-700/70">FPS:</span> {piSpecs?.fps ?? "—"}</div>
+                  <div><span className="text-emerald-700/70">Model:</span> {piSpecs?.model || "YOLOv8"}</div>
+                </div>
+              )}
+              {piStatus === "failed" && (
+                <div className="rounded-md border border-rose-200 bg-rose-50 text-rose-700 text-xs p-2.5 flex gap-2">
+                  <XCircle className="h-4 w-4 shrink-0" />
+                  <span>Could not reach Pi on {piIpDraft}. Verify it's on the same LAN and visiontrack_server.py is running.</span>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
 
