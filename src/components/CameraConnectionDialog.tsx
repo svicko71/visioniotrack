@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, Upload, ShieldAlert, RefreshCw } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Upload, ShieldAlert, RefreshCw, Cpu } from "lucide-react";
+import { usePiConfig } from "@/hooks/usePiConfig";
 
 type Status = "idle" | "connecting" | "success" | "failed" | "reconnecting";
 
