@@ -57,6 +57,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </PiConfigProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
