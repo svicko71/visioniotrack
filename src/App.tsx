@@ -15,6 +15,7 @@ import UrbanDashboard from "./pages/UrbanDashboard";
 import UrbanShield from "./pages/UrbanShield";
 import UrbanShieldLive from "./pages/UrbanShieldLive";
 import FieldTrial from "./pages/FieldTrial";
+import FaceEval from "./pages/FaceEval";
 import Marketplace from "./pages/Marketplace";
 import Classify from "./pages/Classify";
 import Cases from "./pages/Cases";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/shield" element={<UrbanShield />} />
               <Route path="/shield-live" element={<UrbanShieldLive />} />
               <Route path="/field" element={<FieldTrial />} />
+              <Route path="/face-eval" element={<FaceEval />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/classify" element={<Classify />} />
               <Route path="/cases" element={<Cases />} />

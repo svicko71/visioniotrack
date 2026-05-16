@@ -16,6 +16,7 @@ const navLinks = [
   { to: "/shield", label: "Urban Shield" },
   { to: "/shield-live", label: "Shield Live" },
   { to: "/field", label: "Field Trial" },
+  { to: "/face-eval", label: "Face Eval" },
   { to: "/urban", label: "Urban AI" },
   { to: "/admin", label: "Admin" },
   { to: "/about", label: "About" },
