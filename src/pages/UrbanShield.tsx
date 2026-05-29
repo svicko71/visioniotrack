@@ -8,16 +8,25 @@ import {
 import { toast } from "sonner";
 
 // Approximate normalized SVG coords (viewBox 0 0 400 500) for Egypt
+// Approximate normalized SVG coords (viewBox 0 0 400 500) for Egypt
+// Using reliable W3.org / Mux test streams that load with CORS enabled
+const FEED_A = "https://media.w3.org/2010/05/sintel/trailer.mp4";
+const FEED_B = "https://media.w3.org/2010/05/bunny/trailer.mp4";
+const FEED_C = "https://media.w3.org/2010/05/video/movie_300.mp4";
+const FEED_D = "https://media.w3.org/2010/05/bunny/movie.mp4";
+const FEED_E = "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4";
+
 const CITIES = [
-  { name: "Alexandria", x: 130, y: 60,  risk: "low",  cam: "CAM-ALX-04", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
-  { name: "Port Said",  x: 215, y: 70,  risk: "low",  cam: "CAM-PSD-01", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-  { name: "Tanta",      x: 165, y: 95,  risk: "med",  cam: "CAM-TNT-07", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
-  { name: "Mansoura",   x: 195, y: 90,  risk: "low",  cam: "CAM-MNS-02", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-  { name: "Cairo",      x: 175, y: 130, risk: "high", cam: "CAM-CAI-12", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-  { name: "Giza",       x: 165, y: 138, risk: "high", cam: "CAM-GIZ-08", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-  { name: "Luxor",      x: 230, y: 320, risk: "med",  cam: "CAM-LXR-03", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-  { name: "Aswan",      x: 235, y: 400, risk: "low",  cam: "CAM-ASW-05", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+  { name: "Alexandria", x: 130, y: 60,  risk: "low",  cam: "CAM-ALX-04", feed: FEED_A },
+  { name: "Port Said",  x: 215, y: 70,  risk: "low",  cam: "CAM-PSD-01", feed: FEED_B },
+  { name: "Tanta",      x: 165, y: 95,  risk: "med",  cam: "CAM-TNT-07", feed: FEED_C },
+  { name: "Mansoura",   x: 195, y: 90,  risk: "low",  cam: "CAM-MNS-02", feed: FEED_D },
+  { name: "Cairo",      x: 175, y: 130, risk: "high", cam: "CAM-CAI-12", feed: FEED_E },
+  { name: "Giza",       x: 165, y: 138, risk: "high", cam: "CAM-GIZ-08", feed: FEED_A },
+  { name: "Luxor",      x: 230, y: 320, risk: "med",  cam: "CAM-LXR-03", feed: FEED_B },
+  { name: "Aswan",      x: 235, y: 400, risk: "low",  cam: "CAM-ASW-05", feed: FEED_C },
 ] as const;
+
 
 type City = typeof CITIES[number];
 
@@ -66,6 +75,8 @@ const UrbanShield = () => {
   const [tick, setTick] = useState(0);
   const [selected, setSelected] = useState<City>(CITIES[4]); // Cairo
   const [hover, setHover] = useState<City | null>(null);
+  const [videoFailed, setVideoFailed] = useState(false);
+
 
 
   useEffect(() => {
@@ -182,7 +193,7 @@ const UrbanShield = () => {
                     <g
                       key={c.name}
                       className="cursor-pointer"
-                      onClick={() => { setSelected(c); toast.success(`Connected to ${c.cam} · ${c.name}`); }}
+                      onClick={() => { setSelected(c); setVideoFailed(false); toast.success(`Connected to ${c.cam} · ${c.name}`); }}
                       onMouseEnter={() => setHover(c)}
                       onMouseLeave={() => setHover(null)}
                     >
@@ -249,12 +260,34 @@ const UrbanShield = () => {
             </div>
 
             <div className="relative rounded-lg overflow-hidden border border-primary/30 bg-black aspect-video">
-              <video
-                key={selected.cam}
-                src={selected.feed}
-                autoPlay muted loop playsInline
-                className="w-full h-full object-cover"
-              />
+              {!videoFailed ? (
+                <video
+                  key={selected.cam}
+                  src={selected.feed}
+                  autoPlay muted loop playsInline crossOrigin="anonymous"
+                  className="w-full h-full object-cover"
+                  onError={() => setVideoFailed(true)}
+                  onCanPlay={() => setVideoFailed(false)}
+                />
+              ) : (
+                // Simulated CCTV scene fallback (animated SVG) — guarantees the camera is "working"
+                <div className="w-full h-full relative bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 overflow-hidden">
+                  <div className="absolute inset-0 opacity-30"
+                    style={{ backgroundImage: "repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 3px)" }} />
+                  {/* "road" */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-slate-700/60 to-transparent" />
+                  {/* moving "vehicle" silhouette */}
+                  <div className="absolute bottom-[28%] w-10 h-5 rounded-sm bg-slate-300/80 shadow-lg"
+                    style={{ left: `${(tick * 6) % 110 - 10}%`, transition: "left 1.5s linear" }} />
+                  <div className="absolute bottom-[18%] w-14 h-6 rounded-sm bg-amber-200/70 shadow-lg"
+                    style={{ left: `${110 - (tick * 4) % 120}%`, transition: "left 1.5s linear" }} />
+                  {/* pedestrian dot */}
+                  <div className="absolute bottom-[42%] w-2 h-4 rounded-full bg-slate-200/80"
+                    style={{ left: `${30 + (tick % 10)}%` }} />
+                  <div className="absolute top-1/2 left-0 right-0 h-px bg-accent/20" />
+                </div>
+              )}
+
               {/* HUD overlay */}
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-2 left-2 text-[10px] font-display tracking-widest uppercase text-accent bg-black/50 px-2 py-0.5 rounded">
@@ -305,7 +338,7 @@ const UrbanShield = () => {
               {CITIES.map((c) => (
                 <button
                   key={c.cam}
-                  onClick={() => { setSelected(c); toast.success(`Switched to ${c.cam}`); }}
+                  onClick={() => { setSelected(c); setVideoFailed(false); toast.success(`Switched to ${c.cam}`); }}
                   className={`w-full flex items-center justify-between px-2 py-1 rounded border transition-colors ${
                     selected.cam === c.cam
                       ? "border-accent/60 bg-accent/10 text-accent"
