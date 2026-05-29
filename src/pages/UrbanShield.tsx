@@ -108,7 +108,7 @@ const UrbanShield = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-          className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
           {/* MAP */}
           <div className="glass rounded-xl border border-primary/20 p-5 relative overflow-hidden lg:col-span-2">
             <div className="flex items-center justify-between mb-3">
