@@ -95,10 +95,14 @@ const DEMO_CASES: DemoCase[] = [
   },
 ];
 
+const STATUS_FILTERS = [
+  { key: "all",       en: "All",        ar: "الكل",   icon: Users },
+  { key: "MISSING",   en: "Missing",    ar: "مفقود", icon: UserX },
   { key: "FOUND",     en: "Found",      ar: "ظهر",  icon: CheckCircle2 },
   { key: "KIDNAPPED", en: "Kidnapped",  ar: "مخطوف", icon: ShieldAlert },
   { key: "RUNAWAY",   en: "Runaway",    ar: "هارب",  icon: AlertTriangle },
 ] as const;
+
 
 const statusBadge = (s: Status) => {
   if (s === "FOUND") return "bg-accent/15 text-accent border-accent/40";
