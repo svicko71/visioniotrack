@@ -75,6 +75,8 @@ const UrbanShield = () => {
   const [tick, setTick] = useState(0);
   const [selected, setSelected] = useState<City>(CITIES[4]); // Cairo
   const [hover, setHover] = useState<City | null>(null);
+  const [videoFailed, setVideoFailed] = useState(false);
+
 
 
   useEffect(() => {
