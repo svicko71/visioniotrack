@@ -9,15 +9,18 @@ import { toast } from "sonner";
 
 // Approximate normalized SVG coords (viewBox 0 0 400 500) for Egypt
 const CITIES = [
-  { name: "Alexandria", x: 130, y: 60,  risk: "low" },
-  { name: "Port Said",  x: 215, y: 70,  risk: "low" },
-  { name: "Tanta",      x: 165, y: 95,  risk: "med" },
-  { name: "Mansoura",   x: 195, y: 90,  risk: "low" },
-  { name: "Cairo",      x: 175, y: 130, risk: "high" },
-  { name: "Giza",       x: 165, y: 138, risk: "high" },
-  { name: "Luxor",      x: 230, y: 320, risk: "med" },
-  { name: "Aswan",      x: 235, y: 400, risk: "low" },
+  { name: "Alexandria", x: 130, y: 60,  risk: "low",  cam: "CAM-ALX-04", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
+  { name: "Port Said",  x: 215, y: 70,  risk: "low",  cam: "CAM-PSD-01", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+  { name: "Tanta",      x: 165, y: 95,  risk: "med",  cam: "CAM-TNT-07", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
+  { name: "Mansoura",   x: 195, y: 90,  risk: "low",  cam: "CAM-MNS-02", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+  { name: "Cairo",      x: 175, y: 130, risk: "high", cam: "CAM-CAI-12", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+  { name: "Giza",       x: 165, y: 138, risk: "high", cam: "CAM-GIZ-08", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
+  { name: "Luxor",      x: 230, y: 320, risk: "med",  cam: "CAM-LXR-03", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+  { name: "Aswan",      x: 235, y: 400, risk: "low",  cam: "CAM-ASW-05", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
 ] as const;
+
+type City = typeof CITIES[number];
+
 
 const ALERTS = [
   { id: 1, place: "Ramses Station",  msg: "Unusual crowd density",     time: "14 min ago", severity: "HIGH" },
@@ -61,6 +64,9 @@ const statusDot = (s: string) =>
 const UrbanShield = () => {
   const [cameras, setCameras] = useState(847);
   const [tick, setTick] = useState(0);
+  const [selected, setSelected] = useState<City>(CITIES[4]); // Cairo
+  const [hover, setHover] = useState<City | null>(null);
+
 
   useEffect(() => {
     const i = setInterval(() => {
@@ -98,96 +104,223 @@ const UrbanShield = () => {
           </div>
         </motion.div>
 
-        {/* MAP */}
+        {/* MAP + LIVE CAMERA */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-xl border border-primary/20 p-5 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase text-primary flex items-center gap-2">
-              <Radio className="w-4 h-4" /> Live Geo-Network · Egypt
-            </h3>
-            <div className="text-[10px] font-display tracking-widest uppercase text-accent flex items-center gap-2">
-              <Camera className="w-3 h-3" />
-              <span className="font-mono text-base text-primary neon-text">{cameras}</span>
-              <span className="text-muted-foreground">cameras active</span>
+          className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+
+          {/* MAP */}
+          <div className="glass rounded-xl border border-primary/20 p-5 relative overflow-hidden lg:col-span-2">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase text-primary flex items-center gap-2">
+                <Radio className="w-4 h-4" /> Live Geo-Network · Egypt
+              </h3>
+              <div className="text-[10px] font-display tracking-widest uppercase text-accent flex items-center gap-2">
+                <Camera className="w-3 h-3" />
+                <span className="font-mono text-base text-primary neon-text">{cameras}</span>
+                <span className="text-muted-foreground">cameras active</span>
+              </div>
+            </div>
+
+            <div className="relative w-full" style={{ height: 680 }}>
+              <svg viewBox="0 0 400 500" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <radialGradient id="risk-high" cx="0.5" cy="0.5" r="0.5">
+                    <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity="0" />
+                  </radialGradient>
+                  <radialGradient id="risk-clear" cx="0.5" cy="0.5" r="0.5">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0" />
+                  </radialGradient>
+                  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="hsl(var(--primary)/0.08)" strokeWidth="0.5" />
+                  </pattern>
+                </defs>
+
+                <rect width="400" height="500" fill="url(#grid)" />
+
+                {/* Stylized Egypt outline */}
+                <path
+                  d="M 110 50 L 240 55 L 260 90 L 245 130 L 270 180 L 285 250 L 280 340 L 260 420 L 230 470 L 200 470 L 175 420 L 165 360 L 150 280 L 140 200 L 120 130 Z"
+                  fill="hsl(var(--primary)/0.05)"
+                  stroke="hsl(var(--primary)/0.4)"
+                  strokeWidth="1.5"
+                />
+
+                {/* Connection lines */}
+                {CITIES.map((a, i) =>
+                  CITIES.slice(i + 1).map((b, j) => (
+                    <line
+                      key={`${i}-${j}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                      stroke="hsl(var(--primary)/0.15)" strokeWidth="0.5" strokeDasharray="2 3"
+                    />
+                  ))
+                )}
+
+                {/* Risk halos */}
+                {CITIES.map((c) => (
+                  <circle key={`halo-${c.name}`} cx={c.x} cy={c.y} r="32"
+                    fill={c.risk === "high" ? "url(#risk-high)" : "url(#risk-clear)"} />
+                ))}
+
+                {/* Pulse rings on high-risk */}
+                {CITIES.filter(c => c.risk === "high").map((c) => (
+                  <g key={`pulse-${c.name}`}>
+                    <circle cx={c.x} cy={c.y} r="14" fill="none"
+                      stroke="hsl(var(--destructive))" strokeWidth="0.8" opacity="0.6">
+                      <animate attributeName="r" values="6;22;6" dur="2.4s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.8;0;0.8" dur="2.4s" repeatCount="indefinite" />
+                    </circle>
+                  </g>
+                ))}
+
+                {/* City nodes — interactive */}
+                {CITIES.map((c) => {
+                  const isSel = selected?.name === c.name;
+                  return (
+                    <g
+                      key={c.name}
+                      className="cursor-pointer"
+                      onClick={() => { setSelected(c); toast.success(`Connected to ${c.cam} · ${c.name}`); }}
+                      onMouseEnter={() => setHover(c)}
+                      onMouseLeave={() => setHover(null)}
+                    >
+                      {/* invisible hit target */}
+                      <circle cx={c.x} cy={c.y} r="18" fill="transparent" />
+                      <circle cx={c.x} cy={c.y} r={isSel ? 5.5 : 3.5} fill={cityFill(c.risk)}>
+                        <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx={c.x} cy={c.y} r={isSel ? 10 : 6} fill="none"
+                        stroke={cityFill(c.risk)} strokeWidth={isSel ? 1.4 : 0.8}
+                        opacity={isSel ? 0.9 : 0.5} />
+                      {isSel && (
+                        <circle cx={c.x} cy={c.y} r="14" fill="none" stroke="hsl(var(--accent))" strokeWidth="1">
+                          <animate attributeName="r" values="10;18;10" dur="1.6s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="1;0;1" dur="1.6s" repeatCount="indefinite" />
+                        </circle>
+                      )}
+                      <text x={c.x + 9} y={c.y + 3} fontSize="9"
+                        fill={isSel ? "hsl(var(--accent))" : "hsl(var(--foreground))"}
+                        fontFamily="Orbitron, monospace" letterSpacing="1">
+                        {c.name.toUpperCase()}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Hover tooltip */}
+                {hover && (
+                  <g pointerEvents="none">
+                    <rect x={hover.x + 14} y={hover.y - 28} width="92" height="34" rx="3"
+                      fill="hsl(var(--background)/0.92)" stroke="hsl(var(--primary)/0.5)" strokeWidth="0.6" />
+                    <text x={hover.x + 19} y={hover.y - 16} fontSize="6.5" fill="hsl(var(--primary))"
+                      fontFamily="Orbitron, monospace" letterSpacing="0.8">{hover.cam}</text>
+                    <text x={hover.x + 19} y={hover.y - 7} fontSize="5.5" fill="hsl(var(--muted-foreground))"
+                      fontFamily="Orbitron, monospace" letterSpacing="0.6">
+                      RISK · {hover.risk.toUpperCase()} · CLICK TO VIEW
+                    </text>
+                  </g>
+                )}
+              </svg>
+
+              {/* Legend */}
+              <div className="absolute bottom-3 left-3 flex gap-3 text-[10px] font-display tracking-widest uppercase bg-background/70 backdrop-blur px-3 py-2 rounded-lg border border-primary/20">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-primary" /> Clear</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400" /> Watch</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-destructive animate-pulse" /> High-Risk</span>
+              </div>
+
+              <div className="absolute top-3 right-3 text-[10px] font-display tracking-widest uppercase bg-background/70 backdrop-blur px-3 py-2 rounded-lg border border-primary/20 text-muted-foreground">
+                Click a node → live feed
+              </div>
             </div>
           </div>
 
-          <div className="relative w-full" style={{ height: 400 }}>
-            <svg viewBox="0 0 400 500" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
-              <defs>
-                <radialGradient id="risk-high" cx="0.5" cy="0.5" r="0.5">
-                  <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity="0.5" />
-                  <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity="0" />
-                </radialGradient>
-                <radialGradient id="risk-clear" cx="0.5" cy="0.5" r="0.5">
-                  <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0" />
-                </radialGradient>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="hsl(var(--primary)/0.08)" strokeWidth="0.5" />
-                </pattern>
-              </defs>
+          {/* LIVE CAMERA FEED */}
+          <div className="glass rounded-xl border border-primary/20 p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-display text-xs font-bold tracking-[0.2em] uppercase text-primary flex items-center gap-2">
+                <Camera className="w-4 h-4" /> Live Camera
+              </h3>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-display tracking-widest uppercase text-destructive">
+                <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" /> REC · LIVE
+              </span>
+            </div>
 
-              <rect width="400" height="500" fill="url(#grid)" />
-
-              {/* Stylized Egypt outline */}
-              <path
-                d="M 110 50 L 240 55 L 260 90 L 245 130 L 270 180 L 285 250 L 280 340 L 260 420 L 230 470 L 200 470 L 175 420 L 165 360 L 150 280 L 140 200 L 120 130 Z"
-                fill="hsl(var(--primary)/0.05)"
-                stroke="hsl(var(--primary)/0.4)"
-                strokeWidth="1.5"
+            <div className="relative rounded-lg overflow-hidden border border-primary/30 bg-black aspect-video">
+              <video
+                key={selected.cam}
+                src={selected.feed}
+                autoPlay muted loop playsInline
+                className="w-full h-full object-cover"
               />
+              {/* HUD overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-2 left-2 text-[10px] font-display tracking-widest uppercase text-accent bg-black/50 px-2 py-0.5 rounded">
+                  {selected.cam}
+                </div>
+                <div className="absolute top-2 right-2 text-[10px] font-display tracking-widest uppercase text-accent bg-black/50 px-2 py-0.5 rounded">
+                  {selected.name.toUpperCase()}
+                </div>
+                <div className="absolute bottom-2 left-2 text-[9px] font-mono text-accent bg-black/50 px-2 py-0.5 rounded">
+                  {new Date().toISOString().slice(11, 19)} · 1080p · 30 FPS
+                </div>
+                <div className="absolute bottom-2 right-2 text-[9px] font-mono text-accent bg-black/50 px-2 py-0.5 rounded">
+                  YOLOv8 · ONLINE
+                </div>
+                {/* corner brackets */}
+                <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-accent" />
+                <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-accent" />
+                <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-accent" />
+                <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-accent" />
+                {/* simulated bbox */}
+                <div className="absolute border-2 border-accent/80"
+                  style={{ left: "32%", top: "38%", width: "22%", height: "34%" }}>
+                  <div className="absolute -top-4 left-0 text-[9px] font-mono text-accent bg-black/70 px-1">
+                    person · 0.94
+                  </div>
+                </div>
+              </div>
+            </div>
 
-              {/* Connection lines */}
-              {CITIES.map((a, i) =>
-                CITIES.slice(i + 1).map((b, j) => (
-                  <line
-                    key={`${i}-${j}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                    stroke="hsl(var(--primary)/0.15)" strokeWidth="0.5" strokeDasharray="2 3"
-                  />
-                ))
-              )}
+            <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] font-display tracking-widest uppercase">
+              <div className="p-2 rounded bg-secondary/40 border border-border">
+                <div className="text-muted-foreground">Status</div>
+                <div className="text-accent">CONNECTED</div>
+              </div>
+              <div className="p-2 rounded bg-secondary/40 border border-border">
+                <div className="text-muted-foreground">Latency</div>
+                <div className="text-primary">{42 + (tick % 9)}ms</div>
+              </div>
+              <div className="p-2 rounded bg-secondary/40 border border-border">
+                <div className="text-muted-foreground">Risk</div>
+                <div className={selected.risk === "high" ? "text-destructive" : selected.risk === "med" ? "text-amber-400" : "text-accent"}>
+                  {selected.risk.toUpperCase()}
+                </div>
+              </div>
+            </div>
 
-              {/* Risk halos */}
+            <div className="mt-3 max-h-32 overflow-y-auto space-y-1 text-[10px] font-mono">
               {CITIES.map((c) => (
-                <circle key={`halo-${c.name}`} cx={c.x} cy={c.y} r="32"
-                  fill={c.risk === "high" ? "url(#risk-high)" : "url(#risk-clear)"} />
+                <button
+                  key={c.cam}
+                  onClick={() => { setSelected(c); toast.success(`Switched to ${c.cam}`); }}
+                  className={`w-full flex items-center justify-between px-2 py-1 rounded border transition-colors ${
+                    selected.cam === c.cam
+                      ? "border-accent/60 bg-accent/10 text-accent"
+                      : "border-border hover:border-primary/40 text-muted-foreground"
+                  }`}
+                >
+                  <span>{c.cam}</span>
+                  <span>{c.name}</span>
+                </button>
               ))}
-
-              {/* Pulse rings on high-risk */}
-              {CITIES.filter(c => c.risk === "high").map((c) => (
-                <g key={`pulse-${c.name}`}>
-                  <circle cx={c.x} cy={c.y} r="14" fill="none"
-                    stroke="hsl(var(--destructive))" strokeWidth="0.8" opacity="0.6">
-                    <animate attributeName="r" values="6;22;6" dur="2.4s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.8;0;0.8" dur="2.4s" repeatCount="indefinite" />
-                  </circle>
-                </g>
-              ))}
-
-              {/* City nodes */}
-              {CITIES.map((c) => (
-                <g key={c.name}>
-                  <circle cx={c.x} cy={c.y} r="3.5" fill={cityFill(c.risk)}>
-                    <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite" />
-                  </circle>
-                  <circle cx={c.x} cy={c.y} r="6" fill="none" stroke={cityFill(c.risk)} strokeWidth="0.8" opacity="0.5" />
-                  <text x={c.x + 9} y={c.y + 3} fontSize="9" fill="hsl(var(--foreground))"
-                    fontFamily="Orbitron, monospace" letterSpacing="1">
-                    {c.name.toUpperCase()}
-                  </text>
-                </g>
-              ))}
-            </svg>
-
-            {/* Legend */}
-            <div className="absolute bottom-3 left-3 flex gap-3 text-[10px] font-display tracking-widest uppercase bg-background/70 backdrop-blur px-3 py-2 rounded-lg border border-primary/20">
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-primary" /> Clear</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400" /> Watch</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-destructive animate-pulse" /> High-Risk</span>
             </div>
           </div>
         </motion.div>
+
+
 
         {/* ALERT ZONES PANEL */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
