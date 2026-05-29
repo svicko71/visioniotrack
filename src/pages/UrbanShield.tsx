@@ -193,7 +193,7 @@ const UrbanShield = () => {
                     <g
                       key={c.name}
                       className="cursor-pointer"
-                      onClick={() => { setSelected(c); toast.success(`Connected to ${c.cam} · ${c.name}`); }}
+                      onClick={() => { setSelected(c); setVideoFailed(false); toast.success(`Connected to ${c.cam} · ${c.name}`); }}
                       onMouseEnter={() => setHover(c)}
                       onMouseLeave={() => setHover(null)}
                     >
@@ -338,7 +338,7 @@ const UrbanShield = () => {
               {CITIES.map((c) => (
                 <button
                   key={c.cam}
-                  onClick={() => { setSelected(c); toast.success(`Switched to ${c.cam}`); }}
+                  onClick={() => { setSelected(c); setVideoFailed(false); toast.success(`Switched to ${c.cam}`); }}
                   className={`w-full flex items-center justify-between px-2 py-1 rounded border transition-colors ${
                     selected.cam === c.cam
                       ? "border-accent/60 bg-accent/10 text-accent"
