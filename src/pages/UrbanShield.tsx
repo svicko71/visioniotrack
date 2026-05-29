@@ -8,16 +8,25 @@ import {
 import { toast } from "sonner";
 
 // Approximate normalized SVG coords (viewBox 0 0 400 500) for Egypt
+// Approximate normalized SVG coords (viewBox 0 0 400 500) for Egypt
+// Using reliable W3.org / Mux test streams that load with CORS enabled
+const FEED_A = "https://media.w3.org/2010/05/sintel/trailer.mp4";
+const FEED_B = "https://media.w3.org/2010/05/bunny/trailer.mp4";
+const FEED_C = "https://media.w3.org/2010/05/video/movie_300.mp4";
+const FEED_D = "https://media.w3.org/2010/05/bunny/movie.mp4";
+const FEED_E = "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4";
+
 const CITIES = [
-  { name: "Alexandria", x: 130, y: 60,  risk: "low",  cam: "CAM-ALX-04", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" },
-  { name: "Port Said",  x: 215, y: 70,  risk: "low",  cam: "CAM-PSD-01", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-  { name: "Tanta",      x: 165, y: 95,  risk: "med",  cam: "CAM-TNT-07", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" },
-  { name: "Mansoura",   x: 195, y: 90,  risk: "low",  cam: "CAM-MNS-02", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-  { name: "Cairo",      x: 175, y: 130, risk: "high", cam: "CAM-CAI-12", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-  { name: "Giza",       x: 165, y: 138, risk: "high", cam: "CAM-GIZ-08", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-  { name: "Luxor",      x: 230, y: 320, risk: "med",  cam: "CAM-LXR-03", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-  { name: "Aswan",      x: 235, y: 400, risk: "low",  cam: "CAM-ASW-05", feed: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+  { name: "Alexandria", x: 130, y: 60,  risk: "low",  cam: "CAM-ALX-04", feed: FEED_A },
+  { name: "Port Said",  x: 215, y: 70,  risk: "low",  cam: "CAM-PSD-01", feed: FEED_B },
+  { name: "Tanta",      x: 165, y: 95,  risk: "med",  cam: "CAM-TNT-07", feed: FEED_C },
+  { name: "Mansoura",   x: 195, y: 90,  risk: "low",  cam: "CAM-MNS-02", feed: FEED_D },
+  { name: "Cairo",      x: 175, y: 130, risk: "high", cam: "CAM-CAI-12", feed: FEED_E },
+  { name: "Giza",       x: 165, y: 138, risk: "high", cam: "CAM-GIZ-08", feed: FEED_A },
+  { name: "Luxor",      x: 230, y: 320, risk: "med",  cam: "CAM-LXR-03", feed: FEED_B },
+  { name: "Aswan",      x: 235, y: 400, risk: "low",  cam: "CAM-ASW-05", feed: FEED_C },
 ] as const;
+
 
 type City = typeof CITIES[number];
 
