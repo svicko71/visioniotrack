@@ -38,8 +38,9 @@ const SceneShot: React.FC<{ shot: Shot; index: number }> = ({ shot, index }) => 
   const scale = width / shot.w;
   const scaledH = shot.h * scale;
 
-  // Pan from top (0) to bottom (height - scaledH) if image is taller than viewport
-  const maxOffset = Math.min(0, height - scaledH);
+  // Pan from top down. Limit pan distance so tall pages don't fly past — cap at 1.5x viewport.
+  const fullOffset = Math.min(0, height - scaledH);
+  const maxOffset = Math.max(fullOffset, -height * 1.5);
   const progress = interpolate(frame, [0, SCENE_DURATION - 1], [0, 1], {
     extrapolateRight: "clamp",
   });
