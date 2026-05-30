@@ -4,35 +4,16 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const compId = process.argv[2] ?? "main";
+const out = process.argv[3] ?? `/mnt/documents/visiontrack-${compId}.mp4`;
 
-const bundled = await bundle({
-  entryPoint: path.resolve(__dirname, "../src/index.ts"),
-  webpackOverride: (config) => config,
-});
-
+const bundled = await bundle({ entryPoint: path.resolve(__dirname, "../src/index.ts") });
 const browser = await openBrowser("chrome", {
   browserExecutable: process.env.PUPPETEER_EXECUTABLE_PATH ?? "/bin/chromium",
-  chromiumOptions: {
-    args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"],
-  },
+  chromiumOptions: { args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"] },
   chromeMode: "chrome-for-testing",
 });
-
-const composition = await selectComposition({
-  serveUrl: bundled,
-  id: "main",
-  puppeteerInstance: browser,
-});
-
-await renderMedia({
-  composition,
-  serveUrl: bundled,
-  codec: "h264",
-  outputLocation: "/mnt/documents/visiontrack-walkthrough.mp4",
-  puppeteerInstance: browser,
-  muted: true,
-  concurrency: 1,
-});
-
+const composition = await selectComposition({ serveUrl: bundled, id: compId, puppeteerInstance: browser });
+await renderMedia({ composition, serveUrl: bundled, codec: "h264", outputLocation: out, puppeteerInstance: browser, muted: true, concurrency: 1 });
 await browser.close({ silent: false });
-console.log("Done.");
+console.log("Done:", out);
