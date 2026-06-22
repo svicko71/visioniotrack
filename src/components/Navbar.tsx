@@ -1,27 +1,28 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Menu, X, LogIn, LogOut, User, Sun, Moon } from "lucide-react";
+import { Menu, X, LogIn, LogOut, User, Sun, Moon, Languages } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.jpg";
 
-const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/command", label: "Command" },
-  { to: "/search", label: "AI Search" },
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/cases", label: "Cases" },
-  { to: "/shield", label: "Urban Shield" },
-  { to: "/shield-live", label: "Shield Live" },
-  { to: "/field", label: "Field Trial" },
-  { to: "/face-eval", label: "Face Eval" },
-  { to: "/dataset-lab", label: "Dataset Lab" },
-  { to: "/urban", label: "Urban AI" },
-  { to: "/admin", label: "Admin" },
-  { to: "/about", label: "About" },
-];
+const navItems = [
+  { to: "/", key: "home" },
+  { to: "/command", key: "command" },
+  { to: "/search", key: "aiSearch" },
+  { to: "/dashboard", key: "dashboard" },
+  { to: "/cases", key: "cases" },
+  { to: "/shield", key: "urbanShield" },
+  { to: "/shield-live", key: "shieldLive" },
+  { to: "/field", key: "fieldTrial" },
+  { to: "/face-eval", key: "faceEval" },
+  { to: "/dataset-lab", key: "datasetLab" },
+  { to: "/urban", key: "urbanAI" },
+  { to: "/admin", key: "admin" },
+  { to: "/about", key: "about" },
+] as const;
 
 const Navbar = () => {
   const location = useLocation();
