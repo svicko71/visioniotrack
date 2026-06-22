@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Shield, Eye, Zap, MapPin, Bell, Search, Radar, Video, Cpu, Users,
   Upload, Brain, ScanFace, BarChart3, ChevronRight, Play, CheckCircle2,
@@ -57,6 +58,7 @@ const businessModels = [
 ];
 
 const Index = () => {
+  const { t } = useTranslation();
   return (
     <div className="relative overflow-hidden">
       {/* Hero */}
@@ -86,7 +88,7 @@ const Index = () => {
             transition={{ delay: 0.2 }}
             className="text-xs font-display tracking-[0.5em] uppercase text-accent neon-text-green mb-4"
           >
-            ITC-EGYPT 2026 — 6th International Innovation Competition
+            {t("hero.competition")}
           </motion.p>
           <motion.h1
             initial={{ y: 30, opacity: 0 }}
@@ -104,7 +106,7 @@ const Index = () => {
             transition={{ delay: 0.5 }}
             className="text-xl md:text-2xl text-muted-foreground font-light mb-2"
           >
-            Finding Missing Persons Faster, Smarter, Safer
+            {t("tagline")}
           </motion.p>
           <motion.p
             initial={{ y: 20, opacity: 0 }}
@@ -112,7 +114,7 @@ const Index = () => {
             transition={{ delay: 0.6 }}
             className="text-sm text-muted-foreground max-w-2xl mx-auto mb-10"
           >
-            An intelligent AI platform using advanced computer vision and deep learning to locate missing persons in real-time. Optimized for Egyptian and Arabic faces, low-quality surveillance footage, and rapid deployment.
+            {t("hero.subtitle")}
           </motion.p>
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -121,8 +123,8 @@ const Index = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link to="/dashboard">
-              <Button size="lg" className="font-display tracking-[0.15em] bg-primary text-primary-foreground hover:bg-primary/80 neon-border px-8 h-12">
-                <Radar className="w-5 h-5 mr-2" /> Launch Demo
+              <Button size="lg" className="font-display tracking-[0.15em] bg-primary text-primary-foreground hover:bg-primary/90 neon-border px-8 h-12">
+                <Radar className="w-5 h-5 mr-2" /> {t("hero.launch")}
               </Button>
             </Link>
             <Button
@@ -131,7 +133,7 @@ const Index = () => {
               className="font-display tracking-[0.15em] border-primary/50 text-primary hover:bg-primary/10 px-8 h-12"
               onClick={() => window.open("https://youtu.be/nfctHJiqIIA", "_blank", "noopener,noreferrer")}
             >
-              <Play className="w-5 h-5 mr-2" /> Watch Demo
+              <Play className="w-5 h-5 mr-2" /> {t("hero.watch")}
             </Button>
           </motion.div>
         </div>
