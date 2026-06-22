@@ -4,162 +4,162 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* ============================================================
+   VisionTrack AI — Navy Trust Design System
+   Refined palette: deep navy, steel blue, sky accent, soft ice.
+   ============================================================ */
+
 @layer base {
   :root {
-    --background: 210 40% 96%;
-    --foreground: 222 47% 11%;
+    /* Light mode — crisp, government-trust aesthetic */
+    --background: 213 33% 97%;
+    --foreground: 223 61% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 223 61% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 223 61% 12%;
 
-    --primary: 200 95% 40%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 213 51% 30%;          /* deep steel blue */
+    --primary-foreground: 213 33% 97%;
 
-    --secondary: 210 30% 90%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 213 27% 90%;
+    --secondary-foreground: 223 61% 15%;
 
-    --muted: 210 30% 90%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 213 25% 92%;
+    --muted-foreground: 215 16% 42%;
 
-    --accent: 160 84% 39%;
+    --accent: 210 46% 43%;            /* sky-steel accent */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 83%;
-    --input: 214 20% 83%;
-    --ring: 200 95% 40%;
+    --success: 152 60% 36%;
+    --warning: 38 92% 50%;
+
+    --border: 213 20% 84%;
+    --input: 213 20% 84%;
+    --ring: 210 46% 43%;
 
     --radius: 0.75rem;
 
-    --neon-blue: 195 100% 50%;
-    --neon-green: 160 100% 50%;
-    --neon-cyan: 180 100% 50%;
-    --neon-glow: 0 0 10px hsl(200 95% 40% / 0.2);
-    --neon-glow-green: 0 0 10px hsl(160 84% 39% / 0.2);
-    --neon-glow-sm: 0 0 5px hsl(200 95% 40% / 0.15);
+    --neon-blue: 210 46% 43%;
+    --neon-green: 152 60% 36%;
+    --neon-cyan: 200 70% 50%;
+    --neon-glow: 0 6px 24px -6px hsl(213 51% 30% / 0.25);
+    --neon-glow-green: 0 6px 24px -6px hsl(152 60% 36% / 0.25);
+    --neon-glow-sm: 0 2px 10px -2px hsl(213 51% 30% / 0.18);
 
-    --sidebar-background: 210 40% 96%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 200 95% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 30% 90%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 20% 83%;
-    --sidebar-ring: 200 95% 40%;
+    --sidebar-background: 213 33% 97%;
+    --sidebar-foreground: 223 61% 12%;
+    --sidebar-primary: 213 51% 30%;
+    --sidebar-primary-foreground: 213 33% 97%;
+    --sidebar-accent: 213 27% 90%;
+    --sidebar-accent-foreground: 223 61% 15%;
+    --sidebar-border: 213 20% 84%;
+    --sidebar-ring: 210 46% 43%;
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 92%;
+    /* Dark mode — deep navy command surface */
+    --background: 223 61% 7%;
+    --foreground: 213 27% 93%;
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 92%;
+    --card: 223 50% 11%;
+    --card-foreground: 213 27% 93%;
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 92%;
+    --popover: 223 50% 11%;
+    --popover-foreground: 213 27% 93%;
 
-    --primary: 180 100% 50%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 210 70% 60%;           /* bright steel blue */
+    --primary-foreground: 223 61% 7%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 40% 92%;
+    --secondary: 223 40% 16%;
+    --secondary-foreground: 213 27% 93%;
 
-    --muted: 222 30% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 223 35% 16%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 160 100% 45%;
-    --accent-foreground: 222 47% 6%;
+    --accent: 200 75% 55%;
+    --accent-foreground: 223 61% 7%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 213 27% 95%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
-    --ring: 180 100% 50%;
+    --success: 152 65% 50%;
+    --warning: 38 92% 55%;
 
-    --neon-blue: 195 100% 50%;
-    --neon-green: 160 100% 50%;
-    --neon-cyan: 180 100% 50%;
-    --neon-glow: 0 0 20px hsl(180 100% 50% / 0.4), 0 0 40px hsl(180 100% 50% / 0.2);
-    --neon-glow-green: 0 0 20px hsl(160 100% 50% / 0.4), 0 0 40px hsl(160 100% 50% / 0.2);
-    --neon-glow-sm: 0 0 10px hsl(180 100% 50% / 0.3);
+    --border: 223 30% 20%;
+    --input: 223 30% 20%;
+    --ring: 210 70% 60%;
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 92%;
-    --sidebar-primary: 180 100% 50%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 30% 14%;
-    --sidebar-accent-foreground: 210 40% 92%;
-    --sidebar-border: 222 30% 18%;
-    --sidebar-ring: 180 100% 50%;
+    --neon-blue: 210 70% 60%;
+    --neon-green: 152 65% 50%;
+    --neon-cyan: 200 75% 55%;
+    --neon-glow: 0 0 24px hsl(210 70% 60% / 0.25), 0 0 48px hsl(210 70% 60% / 0.12);
+    --neon-glow-green: 0 0 24px hsl(152 65% 50% / 0.25), 0 0 48px hsl(152 65% 50% / 0.12);
+    --neon-glow-sm: 0 0 12px hsl(210 70% 60% / 0.22);
+
+    --sidebar-background: 223 55% 9%;
+    --sidebar-foreground: 213 27% 93%;
+    --sidebar-primary: 210 70% 60%;
+    --sidebar-primary-foreground: 223 61% 7%;
+    --sidebar-accent: 223 40% 16%;
+    --sidebar-accent-foreground: 213 27% 93%;
+    --sidebar-border: 223 30% 20%;
+    --sidebar-ring: 210 70% 60%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
+  * { @apply border-border; }
   body {
     @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "ss01", "cv11";
   }
+  h1, h2, h3, h4, h5, h6 { @apply font-display; letter-spacing: 0.02em; }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
-  }
+  /* RTL support for Arabic */
+  html[dir="rtl"] body { font-family: 'Inter', 'Tajawal', 'Noto Naskh Arabic', sans-serif; }
+  html[dir="rtl"] .font-display { letter-spacing: 0; }
 }
 
 @layer utilities {
   .neon-text {
-    text-shadow: 0 0 10px hsl(180 100% 50% / 0.6), 0 0 20px hsl(180 100% 50% / 0.3);
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.45);
   }
-
   .neon-text-green {
-    text-shadow: 0 0 10px hsl(160 100% 50% / 0.6), 0 0 20px hsl(160 100% 50% / 0.3);
+    text-shadow: 0 0 12px hsl(var(--success) / 0.45);
   }
-
   .neon-border {
-    box-shadow: var(--neon-glow), inset 0 0 20px hsl(180 100% 50% / 0.05);
+    box-shadow: var(--neon-glow), inset 0 0 0 1px hsl(var(--primary) / 0.18);
   }
-
   .neon-border-green {
-    box-shadow: var(--neon-glow-green), inset 0 0 20px hsl(160 100% 50% / 0.05);
+    box-shadow: var(--neon-glow-green), inset 0 0 0 1px hsl(var(--success) / 0.18);
   }
-
   .glass {
-    @apply bg-card/60 backdrop-blur-xl border border-border;
+    @apply bg-card/70 backdrop-blur-xl border border-border;
   }
-
   .scan-line {
-    background: linear-gradient(180deg, transparent, hsl(180 100% 50% / 0.15), transparent);
-    animation: scan 2s linear infinite;
+    background: linear-gradient(180deg, transparent, hsl(var(--primary) / 0.12), transparent);
+    animation: scan 2.4s linear infinite;
   }
 
   @keyframes scan {
     0% { transform: translateY(-100%); }
     100% { transform: translateY(100%); }
   }
-
   @keyframes pulse-neon {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    50% { opacity: 0.65; }
   }
-
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
   }
 
-  .animate-pulse-neon {
-    animation: pulse-neon 2s ease-in-out infinite;
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
+  .animate-pulse-neon { animation: pulse-neon 2.4s ease-in-out infinite; }
+  .animate-float { animation: float 3.5s ease-in-out infinite; }
 }

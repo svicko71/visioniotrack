@@ -1,0 +1,53 @@
+{
+  "brand": "VisionTrack AI",
+  "tagline": "Finding Missing Persons Faster, Smarter, Safer",
+  "demoBadge": "DEMO MODE",
+  "nav": {
+    "home": "Home",
+    "command": "Command",
+    "aiSearch": "AI Search",
+    "dashboard": "Dashboard",
+    "cases": "Cases",
+    "urbanShield": "Urban Shield",
+    "shieldLive": "Shield Live",
+    "fieldTrial": "Field Trial",
+    "faceEval": "Face Eval",
+    "datasetLab": "Dataset Lab",
+    "urbanAI": "Urban AI",
+    "admin": "Admin",
+    "about": "About",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "language": "العربية"
+  },
+  "hero": {
+    "competition": "ITC-EGYPT 2026 — 6th International Innovation Competition",
+    "subtitle": "An intelligent AI platform using advanced computer vision and deep learning to locate missing persons in real-time. Optimized for Egyptian and Arabic faces, low-quality surveillance footage, and rapid deployment.",
+    "launch": "Launch Demo",
+    "watch": "Watch Demo"
+  },
+  "sections": {
+    "howItWorks": "How It Works",
+    "howItWorksDesc": "Our AI pipeline processes images through 4 stages to deliver fast, accurate results.",
+    "liveDemo": "Live Demo",
+    "liveDemoDesc": "Watch VisionTrack AI in action",
+    "features": "Powerful Features",
+    "metrics": "Performance Metrics",
+    "metricsDesc": "Tested on 10,000+ images including low-quality CCTV footage and challenging conditions.",
+    "why": "Why VisionTrack",
+    "whyDesc": "Purpose-built for the Egyptian and Arab region with unique optimizations.",
+    "team": "The Team",
+    "teamDesc": "Built by a high school team for ITC-EGYPT 2026"
+  },
+  "footer": {
+    "platform": "PLATFORM",
+    "company": "COMPANY",
+    "techStack": "TECH STACK",
+    "tagline": "AI-Powered Real-Time Missing Person Finder. Built for ITC-EGYPT 2026.",
+    "rights": "© 2026 VisionTrack AI. All rights reserved.",
+    "about": "About Us",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}

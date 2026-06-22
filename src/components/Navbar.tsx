@@ -1,33 +1,40 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Menu, X, LogIn, LogOut, User, Sun, Moon } from "lucide-react";
+import { Menu, X, LogIn, LogOut, User, Sun, Moon, Languages } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.jpg";
 
-const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/command", label: "Command" },
-  { to: "/search", label: "AI Search" },
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/cases", label: "Cases" },
-  { to: "/shield", label: "Urban Shield" },
-  { to: "/shield-live", label: "Shield Live" },
-  { to: "/field", label: "Field Trial" },
-  { to: "/face-eval", label: "Face Eval" },
-  { to: "/dataset-lab", label: "Dataset Lab" },
-  { to: "/urban", label: "Urban AI" },
-  { to: "/admin", label: "Admin" },
-  { to: "/about", label: "About" },
-];
+const navItems = [
+  { to: "/", key: "home" },
+  { to: "/command", key: "command" },
+  { to: "/search", key: "aiSearch" },
+  { to: "/dashboard", key: "dashboard" },
+  { to: "/cases", key: "cases" },
+  { to: "/shield", key: "urbanShield" },
+  { to: "/shield-live", key: "shieldLive" },
+  { to: "/field", key: "fieldTrial" },
+  { to: "/face-eval", key: "faceEval" },
+  { to: "/dataset-lab", key: "datasetLab" },
+  { to: "/urban", key: "urbanAI" },
+  { to: "/admin", key: "admin" },
+  { to: "/about", key: "about" },
+] as const;
 
 const Navbar = () => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { theme, toggle } = useTheme();
+  const { t, i18n } = useTranslation();
+
+  const toggleLang = () => {
+    const next = i18n.language === "ar" ? "en" : "ar";
+    i18n.changeLanguage(next);
+  };
 
   return (
     <motion.nav
@@ -37,27 +44,35 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex items-center justify-between py-3 px-4">
         <Link to="/" className="flex items-center gap-3">
-          <img src={logo} alt="VisionTrack AI" className="h-10 w-10 rounded-full object-cover" />
+          <img src={logo} alt="VisionTrack AI" className="h-10 w-10 rounded-full object-cover ring-1 ring-primary/40" />
           <span className="font-display text-lg font-bold tracking-wider text-primary neon-text">
-            VisionTrack AI
+            {t("brand")}
           </span>
         </Link>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((l) => (
+          {navItems.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+              className={`px-3 py-2 rounded-lg text-xs font-medium tracking-wide transition-all duration-300 ${
                 location.pathname === l.to
                   ? "text-primary bg-primary/10 neon-text"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
             >
-              {l.label}
+              {t(`nav.${l.key}`)}
             </Link>
           ))}
+
+          <button
+            onClick={toggleLang}
+            className="ml-1 px-2 py-2 rounded-lg text-xs font-display tracking-wider text-muted-foreground hover:text-primary hover:bg-secondary transition-colors flex items-center gap-1"
+            aria-label="Toggle language"
+          >
+            <Languages className="w-4 h-4" /> {t("nav.language")}
+          </button>
 
           <button
             onClick={toggle}
@@ -73,22 +88,27 @@ const Navbar = () => {
                 <User className="w-3 h-3" /> {user.email?.split("@")[0]}
               </span>
               <Button size="sm" variant="outline" onClick={signOut} className="text-xs border-border text-muted-foreground hover:text-destructive">
-                <LogOut className="w-3 h-3 mr-1" /> Sign Out
+                <LogOut className="w-3 h-3 mr-1" /> {t("nav.signOut")}
               </Button>
             </div>
           ) : (
             <Link to="/auth" className="ml-2">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/80 text-xs font-display tracking-wider">
-                <LogIn className="w-3 h-3 mr-1" /> Sign In
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-display tracking-wider">
+                <LogIn className="w-3 h-3 mr-1" /> {t("nav.signIn")}
               </Button>
             </Link>
           )}
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden text-foreground" onClick={() => setOpen(!open)}>
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <button onClick={toggleLang} className="p-2 rounded-lg text-muted-foreground hover:text-primary" aria-label="Toggle language">
+            <Languages className="w-5 h-5" />
+          </button>
+          <button className="text-foreground" onClick={() => setOpen(!open)}>
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -98,7 +118,7 @@ const Navbar = () => {
           animate={{ opacity: 1, height: "auto" }}
           className="md:hidden glass border-t border-border"
         >
-          {navLinks.map((l) => (
+          {navItems.map((l) => (
             <Link
               key={l.to}
               to={l.to}
@@ -109,16 +129,16 @@ const Navbar = () => {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {l.label}
+              {t(`nav.${l.key}`)}
             </Link>
           ))}
           {user ? (
-            <button onClick={() => { signOut(); setOpen(false); }} className="block w-full text-left px-6 py-3 text-sm text-destructive">
-              Sign Out
+            <button onClick={() => { signOut(); setOpen(false); }} className="block w-full text-start px-6 py-3 text-sm text-destructive">
+              {t("nav.signOut")}
             </button>
           ) : (
             <Link to="/auth" onClick={() => setOpen(false)} className="block px-6 py-3 text-sm text-primary">
-              Sign In
+              {t("nav.signIn")}
             </Link>
           )}
         </motion.div>
