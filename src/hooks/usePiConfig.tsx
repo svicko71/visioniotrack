@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { isSafeHost, safeLS } from "@/lib/safe";
 
 interface PiSpecs { resolution?: string; fps?: number; model?: string; }
 interface PiStatus { ws: "idle" | "ok" | "fail" | "testing"; mjpeg: "idle" | "ok" | "fail" | "testing"; }
@@ -16,15 +17,21 @@ interface PiConfigCtx {
 
 const Ctx = createContext<PiConfigCtx | null>(null);
 const LS_KEY = "vt_pi_ip";
+const DEFAULT_IP = "192.168.1.100";
 
 export function PiConfigProvider({ children }: { children: ReactNode }) {
-  const [piIp, setPiIpState] = useState<string>(() => localStorage.getItem(LS_KEY) || "192.168.1.100");
+  const [piIp, setPiIpState] = useState<string>(() => {
+    const stored = safeLS.get(LS_KEY);
+    return stored && isSafeHost(stored) ? stored : DEFAULT_IP;
+  });
   const [status, setStatus] = useState<PiStatus>({ ws: "idle", mjpeg: "idle" });
   const [specs, setSpecs] = useState<PiSpecs | null>(null);
 
   const setPiIp = useCallback((ip: string) => {
-    setPiIpState(ip);
-    localStorage.setItem(LS_KEY, ip);
+    const trimmed = (ip || "").trim();
+    if (!isSafeHost(trimmed)) return; // ignore invalid input silently
+    setPiIpState(trimmed);
+    safeLS.set(LS_KEY, trimmed);
     setStatus({ ws: "idle", mjpeg: "idle" });
     setSpecs(null);
   }, []);
