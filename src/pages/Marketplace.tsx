@@ -8,6 +8,8 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { demoStore, isDemoUser } from "@/lib/demo";
+import { withTimeout, sanitizeText } from "@/lib/safe";
 
 const categories = [
   { value: "wood", label: "Wood", icon: Package },
@@ -50,9 +52,20 @@ const Marketplace = () => {
 
   const loadDonations = async () => {
     setLoading(true);
-    const { data } = await supabase.from("donations").select("*").order("created_at", { ascending: false });
-    if (data) setDonations(data);
-    setLoading(false);
+    try {
+      const { data } = await withTimeout(
+        supabase.from("donations").select("*").order("created_at", { ascending: false }) as unknown as Promise<{ data: any[] | null }>,
+        12000,
+        "loadDonations",
+      );
+      const remote = Array.isArray(data) ? data : [];
+      const local = demoStore.read<any>("donations");
+      setDonations([...local, ...remote]);
+    } catch {
+      setDonations(demoStore.read<any>("donations"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFile = useCallback((file: File) => {
@@ -63,40 +76,66 @@ const Marketplace = () => {
   }, []);
 
   const submitDonation = async () => {
-    if (!user) { toast.error("Please sign in first"); return; }
-    if (!title.trim()) { toast.error("Title is required"); return; }
+    const cleanTitle = sanitizeText(title, 120).trim();
+    const cleanDesc = sanitizeText(description, 1000).trim();
+    if (!cleanTitle) { toast.error("Title is required"); return; }
+    if (photo && photo.size > 8 * 1024 * 1024) { toast.error("Image too large (max 8MB)"); return; }
+    if (photo && !/^image\//.test(photo.type)) { toast.error("Only image files are allowed"); return; }
     setSubmitting(true);
 
     try {
-      let imageUrl = null;
-      if (photo) {
-        const ext = photo.name.split(".").pop();
-        const path = `donations/${user.id}/${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("case-photos").upload(path, photo);
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage.from("case-photos").getPublicUrl(path);
-          imageUrl = urlData.publicUrl;
+      // Visitor: simulate locally, never touch DB.
+      if (isDemoUser(user?.id)) {
+        demoStore.push("donations", {
+          user_id: "demo",
+          title: cleanTitle,
+          description: cleanDesc || null,
+          category,
+          condition,
+          image_url: photoPreview,
+          lat: 30.0 + Math.random() * 1.5,
+          lng: 31.0 + Math.random() * 1.5,
+          status: "available",
+          created_at: new Date().toISOString(),
+        });
+        toast.success("Demo donation added (visible during this session).");
+      } else {
+        let imageUrl: string | null = null;
+        if (photo) {
+          const ext = (photo.name.split(".").pop() || "jpg").replace(/[^a-z0-9]/gi, "").slice(0, 5);
+          const path = `donations/${user!.id}/${Date.now()}.${ext}`;
+          const { error: uploadError } = await withTimeout(
+            supabase.storage.from("case-photos").upload(path, photo) as unknown as Promise<{ error: any }>,
+            30000, "upload",
+          );
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage.from("case-photos").getPublicUrl(path);
+            imageUrl = urlData.publicUrl;
+          }
         }
+
+        const { error } = await withTimeout(
+          supabase.from("donations").insert({
+            user_id: user!.id,
+            title: cleanTitle,
+            description: cleanDesc || null,
+            category,
+            condition,
+            image_url: imageUrl,
+            lat: 30.0 + Math.random() * 1.5,
+            lng: 31.0 + Math.random() * 1.5,
+          }) as unknown as Promise<{ error: any }>,
+          15000, "insert donation",
+        );
+        if (error) throw error;
+        toast.success("Donation listed successfully!");
       }
 
-      const { error } = await supabase.from("donations").insert({
-        user_id: user.id,
-        title: title.trim(),
-        description: description.trim() || null,
-        category,
-        condition,
-        image_url: imageUrl,
-        lat: 30.0 + Math.random() * 1.5,
-        lng: 31.0 + Math.random() * 1.5,
-      });
-
-      if (error) throw error;
-      toast.success("Donation listed successfully!");
       setTitle(""); setDescription(""); setCategory("wood"); setCondition("good");
       setPhoto(null); setPhotoPreview(null); setShowForm(false);
       loadDonations();
     } catch (err: any) {
-      toast.error(err.message || "Failed to submit");
+      toast.error(err?.message?.slice(0, 200) || "Failed to submit");
     } finally {
       setSubmitting(false);
     }
