@@ -19,9 +19,9 @@ export const demoStore = {
   write<T>(bucket: string, rows: T[]): void {
     safeLS.set(`demo:${bucket}`, JSON.stringify(rows.slice(0, 200)));
   },
-  push<T extends { id?: string }>(bucket: string, row: T): T {
-    const withId = { id: row.id ?? crypto.randomUUID?.() ?? String(Date.now()), ...row };
-    const rows = demoStore.read<T>(bucket);
+  push<T extends Record<string, any>>(bucket: string, row: T): T & { id: string } {
+    const withId = { id: (row as any).id ?? crypto.randomUUID?.() ?? String(Date.now()), ...row };
+    const rows = demoStore.read<T & { id: string }>(bucket);
     rows.unshift(withId);
     demoStore.write(bucket, rows);
     return withId;
