@@ -48,6 +48,7 @@ const team = [
   { name: "Mohamed Nasser", role: "Computer Vision Specialist" },
   { name: "Mohamed Sayyad", role: "Data Scientist" },
   { name: "Ahmed Yasser", role: "Backend Engineer" },
+  { name: "A'laa Hani", role: "Coding" },
 ];
 
 const businessModels = [
