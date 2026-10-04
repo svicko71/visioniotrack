@@ -7,6 +7,7 @@ const team = [
   { name: "Mohamed Nasser", role: "Computer Vision Specialist", desc: "Developed face detection and preprocessing pipeline." },
   { name: "Mohamed Sayyad", role: "Data Scientist", desc: "Designed the dataset strategy and evaluation metrics." },
   { name: "Ahmed Yasser", role: "Backend Engineer", desc: "Built APIs, database architecture, and deployment." },
+  { name: "A'laa Hani", role: "Coding", desc: "" },
 ];
 
 const values = [
@@ -83,7 +84,7 @@ const About = () => (
             </div>
             <h3 className="font-display text-sm font-bold tracking-wider">{t.name}</h3>
             <p className="text-xs text-primary mt-1 font-display tracking-wider">{t.role}</p>
-            <p className="text-xs text-muted-foreground mt-2">{t.desc}</p>
+            {t.desc && <p className="text-xs text-muted-foreground mt-2">{t.desc}</p>}
           </motion.div>
         ))}
       </div>
