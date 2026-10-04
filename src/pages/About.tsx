@@ -24,7 +24,7 @@ const About = () => (
         <div className="flex items-center gap-2 mb-4">
           <Trophy className="w-5 h-5 text-accent" />
           <span className="text-xs font-display tracking-[0.4em] uppercase text-accent neon-text-green">
-            ITC-EGYPT 2026 — 6th International Innovation Competition
+            ITC-EGYPT 2026 · ISEF 2026 — 6th International Innovation Competition
           </span>
         </div>
         <h1 className="text-4xl font-display font-bold tracking-[0.15em] uppercase mb-6">
