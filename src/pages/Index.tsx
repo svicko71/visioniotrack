@@ -351,7 +351,7 @@ const Index = () => {
             The <span className="text-primary neon-text">Team</span>
           </motion.h2>
           <p className="text-center text-muted-foreground mb-10 text-sm">Built by a high school team for ITC-EGYPT 2026</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {team.map((t, i) => (
               <motion.div
                 key={t.name}
